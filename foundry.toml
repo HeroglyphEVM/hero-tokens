@@ -53,7 +53,6 @@ fantom = "${RPC_FANTOM}"
 base = "${RPC_BASE}"
 fraxtal = "${RPC_FRAXTAL}"
 gnosis = "${RPC_GNOSIS}"
-mode = "${RPC_MODE}"
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_KEY}", chain = 1, url = "https://api.etherscan.io/api/"}
@@ -62,7 +61,7 @@ arbitrumOne = { key = "${ARBISCAN_KEY}", chain = 42161, url = "https://api.arbis
 arbitrumGoerli = { key = "${ARBISCAN_KEY}", chain = 421613, url = "https://api-sepolia.arbiscan.io/api/"}
 polygon = { key = "${POLYSCAN_KEY}", chain = 137, url = "https://api.polygonscan.com/api"}
 scroll = { key = "${SCROLLSCAN_KEY}", chain = 534352, url = "https://api.scrollscan.com/api"}
-avax = { key = "${AVAXSCAN_KEY}", chain = 43114, url = "https://api.avascan.info"}
+avax = { key = "${AVAXSCAN_KEY}", chain = 43114, url = "https://api.snowscan.xyz/api"}
 op = { key = "${OPSCAN_KEY}", chain = 10, url = "https://api-optimistic.etherscan.io/api"}
 mantle = { key = "${MANTLESCAN_KEY}",  url = "https://api.mantlescan.xyz/api"}
 linea = { key = "${LINEASCAN_KEY}",  url = "https://api.lineascan.build/api"}
@@ -70,7 +69,6 @@ fantom = { key = "${FANTOMSCAN_KEY}",  url = "https://api.ftmscan.com/api"}
 base = { key = "${BASESCAN_KEY}",  url = "https://api.basescan.org/api"}
 fraxtal = { key = "${FRAXTALSCAN_KEY}",  url = "https://api.fraxscan.com/api"}
 gnosis = { key = "${GNOSISSCAN_KEY}",  url = "https://api.gnosisscan.io/api"}
-mode = { key = "${MODESCAN_KEY}",  url = "https://explorer.mode.network//api"}
 
 
 

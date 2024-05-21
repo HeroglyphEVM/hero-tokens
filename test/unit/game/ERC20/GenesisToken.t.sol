@@ -5,6 +5,7 @@ import "../../../base/BaseTest.t.sol";
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { GenesisToken, IGenesisToken } from "src/game/ERC20/GenesisToken.sol";
+import { IGenesisHub } from "src/game/IGenesisHub.sol";
 
 import { IHeroOFTXOperator } from "src/tokens/extension/IHeroOFTXOperator.sol";
 
@@ -22,7 +23,7 @@ contract GenesisTokenTest is BaseTest {
   address private feePayer;
   address private heroglyphRelay;
   address private localLzEndpoint;
-  address private redeemHub;
+  address private genesisHub;
   uint32 private constant LOCAL_LZ_ENDPOINT_ID = 1;
   uint32 private constant LZ_GAS_LIMIT = 200_000;
   uint256 private constant MAX_SUPPLY = 1_099_245e18;
@@ -60,11 +61,13 @@ contract GenesisTokenTest is BaseTest {
       symbol: "GT",
       crossChainFee: 0,
       preMintAmount: 0,
-      redeemHub: redeemHub,
+      genesisHub: genesisHub,
       configuration: genesisTokenData
     });
 
     underTest = new GenesisTokenHarness(genesisConstructor, heroOFTXOperatorArgs);
+
+    _mockApplyDifficulty(FIXED_RATE);
   }
 
   function generateVariables() internal {
@@ -74,7 +77,7 @@ contract GenesisTokenTest is BaseTest {
     feePayer = generateAddress("FeePayer");
     heroglyphRelay = generateAddress("HeroGlyphRelay");
     localLzEndpoint = generateAddress("LocalLzEndpoint");
-    redeemHub = generateAddress("RedeemHub");
+    genesisHub = generateAddress("genesisHub");
 
     key = new MockERC20("Key", "KEY", 18);
 
@@ -85,7 +88,7 @@ contract GenesisTokenTest is BaseTest {
     underTest = new GenesisTokenHarness(genesisConstructor, heroOFTXOperatorArgs);
 
     assertEq(underTest.lastMintTriggered(), block.timestamp);
-    assertEq(underTest.redeemHub(), redeemHub);
+    assertEq(underTest.genesisHub(), genesisHub);
     assertEq(abi.encode(genesisTokenData), abi.encode(underTest.getConfiguration()));
 
     assertEq(underTest.owner(), owner);
@@ -134,26 +137,26 @@ contract GenesisTokenTest is BaseTest {
     assertFalse(success_);
   }
 
-  function test_redeem_asNonRedeemHub_thenReverts() external {
-    vm.expectRevert(IGenesisToken.NotRedeemHub.selector);
-    underTest.redeem(user);
+  function test_redeem_asNongenesisHub_thenReverts() external {
+    vm.expectRevert(IGenesisToken.NotgenesisHub.selector);
+    underTest.redeem(user, 1);
   }
 
-  function test_redeem_whenWalletHasNoKey_thenReverts() external prankAs(redeemHub) {
+  function test_redeem_whenWalletHasNoKey_thenReverts() external prankAs(genesisHub) {
     address to = generateAddress();
 
     vm.expectRevert(IGenesisToken.NoKeyDetected.selector);
-    underTest.redeem(to);
+    underTest.redeem(to, 1);
   }
 
-  function test_redeem_whenWalletHasKey_thenRedeemsWithoutBonus() external prankAs(redeemHub) {
+  function test_redeem_whenWalletHasKey_thenRedeemsWithoutBonus() external prankAs(genesisHub) {
     skip(1 days);
     (uint256 redeemReward, uint256 mintingReward) = underTest.getNextReward();
 
     expectExactEmit();
     emit IGenesisToken.TokenRedeemed(user, redeemReward);
 
-    uint256 reward = underTest.redeem(user);
+    uint256 reward = underTest.redeem(user, 1);
 
     assertEq(underTest.balanceOf(user), reward);
     assertEq(reward, underTest.getConfiguration().fixedRate);
@@ -161,7 +164,7 @@ contract GenesisTokenTest is BaseTest {
     assertLt(reward, mintingReward);
   }
 
-  function test_redeem_whenNoKeyNeeded_thenRedeemsWithoutBonus() external prankAs(redeemHub) {
+  function test_redeem_whenNoKeyNeeded_thenRedeemsWithoutBonus() external prankAs(genesisHub) {
     heroOFTXOperatorArgs.key = address(0);
     underTest = new GenesisTokenHarness(genesisConstructor, heroOFTXOperatorArgs);
 
@@ -173,7 +176,7 @@ contract GenesisTokenTest is BaseTest {
     expectExactEmit();
     emit IGenesisToken.TokenRedeemed(to, redeemReward);
 
-    uint256 reward = underTest.redeem(to);
+    uint256 reward = underTest.redeem(to, 1);
 
     assertEq(underTest.balanceOf(to), reward);
     assertEq(reward, underTest.getConfiguration().fixedRate);
@@ -181,9 +184,18 @@ contract GenesisTokenTest is BaseTest {
     assertLt(reward, mintingReward);
   }
 
+  function test_redeem_whenMultipleRedeem_thenRedeems() external prankAs(genesisHub) {
+    uint256 multiplier = 3;
+
+    _mockApplyDifficulty(FIXED_RATE * 3);
+
+    underTest.redeem(user, multiplier);
+    assertEq(underTest.balanceOf(user), multiplier * FIXED_RATE);
+  }
+
   function test_executeMint_whenNoAddressGiven_thenDoesNotMint() external {
     skip(1 days);
-    underTest.exposed_executeMint(address(0), true);
+    underTest.exposed_executeMint(address(0), true, 1);
 
     assertEq(underTest.totalSupply(), 0);
     assertEq(underTest.lastMintTriggered(), block.timestamp);
@@ -191,7 +203,7 @@ contract GenesisTokenTest is BaseTest {
 
   function test_executeMint_whenAddressGiven_thenMints() external {
     skip(1 days);
-    uint256 reward = underTest.exposed_executeMint(user, true);
+    uint256 reward = underTest.exposed_executeMint(user, true, 1);
 
     assertEq(underTest.balanceOf(user), reward);
     assertEq(underTest.totalSupply(), reward);
@@ -202,7 +214,7 @@ contract GenesisTokenTest is BaseTest {
     skip(1 days);
     (uint256 redeemReward,) = underTest.getNextReward();
 
-    uint256 returned = underTest.exposed_executeMint(user, false);
+    uint256 returned = underTest.exposed_executeMint(user, false, 1);
     assertEq(returned, redeemReward);
     assertEq(underTest.lastMintTriggered(), block.timestamp);
   }
@@ -211,28 +223,28 @@ contract GenesisTokenTest is BaseTest {
     skip(2 days);
     (, uint256 blockProducingReward) = underTest.getNextReward();
 
-    uint256 returned = underTest.exposed_executeMint(user, true);
+    uint256 returned = underTest.exposed_executeMint(user, true, 1);
     assertEq(returned, blockProducingReward);
     assertEq(underTest.lastMintTriggered(), block.timestamp);
   }
 
   function test_calculateTokensToEmit_whenWithoutBonus_thenReturnsWithoutBonus() external {
     skip(1 days);
-    uint256 reward = underTest.exposed_calculateTokensToEmit(uint32(block.timestamp), false);
+    uint256 reward = underTest.exposed_calculateTokensToEmit(uint32(block.timestamp), false, 1);
 
     assertEq(reward, FIXED_RATE);
   }
 
   function test_calculateTokensToEmit_whenWithBonus_thenReturnsWithBonus() external {
     skip(1.1 days);
-    uint256 reward = underTest.exposed_calculateTokensToEmit(uint32(block.timestamp), true);
+    uint256 reward = underTest.exposed_calculateTokensToEmit(uint32(block.timestamp), true, 1);
 
     assertEq(reward, FIXED_RATE + MAX_BONUS_FULL_DAY);
   }
 
   function test_calculateTokensToEmit_whenMultipleDays_thenReturnsCappedBonus() external {
     skip(5 days);
-    uint256 reward = underTest.exposed_calculateTokensToEmit(uint32(block.timestamp), true);
+    uint256 reward = underTest.exposed_calculateTokensToEmit(uint32(block.timestamp), true, 1);
 
     assertEq(reward, FIXED_RATE + MAX_BONUS_FULL_DAY);
   }
@@ -241,24 +253,27 @@ contract GenesisTokenTest is BaseTest {
     skip(1.1 days);
     underTest.exposed_totalMintedSupply(MAX_SUPPLY - FIXED_RATE);
 
-    uint256 reward = underTest.exposed_calculateTokensToEmit(uint32(block.timestamp), true);
+    _mockApplyDifficulty(FIXED_RATE * 2);
+
+    uint256 reward = underTest.exposed_calculateTokensToEmit(uint32(block.timestamp), true, 1);
 
     assertEq(reward, FIXED_RATE);
   }
 
   function test_calculateTokensToEmit_whenPieceMissingBeforeMaxSupply_thenReturnsPieces() external {
     uint256 pieces = 0.0023e18;
+    _mockApplyDifficulty(pieces);
 
     underTest.exposed_totalMintedSupply(MAX_SUPPLY - pieces);
 
-    uint256 reward = underTest.exposed_calculateTokensToEmit(uint32(block.timestamp), true);
+    uint256 reward = underTest.exposed_calculateTokensToEmit(uint32(block.timestamp), true, 1);
     assertEq(reward, pieces);
   }
 
   function test_calculateTokensToEmit_whenMaxSupplyExceeded_thenReturnsZero() external {
     underTest.exposed_totalMintedSupply(MAX_SUPPLY);
 
-    uint256 reward = underTest.exposed_calculateTokensToEmit(uint32(block.timestamp), true);
+    uint256 reward = underTest.exposed_calculateTokensToEmit(uint32(block.timestamp), true, 1);
     assertEq(reward, 0);
   }
 
@@ -278,17 +293,21 @@ contract GenesisTokenTest is BaseTest {
     assertEq(abi.encode(genesisTokenData), abi.encode(underTest.getConfiguration()));
   }
 
-  function test_updateRedeemHub_asUser_thenReverts() external prankAs(user) {
+  function test_updategenesisHub_asUser_thenReverts() external prankAs(user) {
     vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
-    underTest.updateRedeemHub(redeemHub);
+    underTest.updategenesisHub(genesisHub);
   }
 
-  function test_updateRedeemHub_asOwner_thenUpdates() external prankAs(owner) {
+  function test_updategenesisHub_asOwner_thenUpdates() external prankAs(owner) {
     expectExactEmit();
-    emit IGenesisToken.RedeemHubUpdated(redeemHub);
-    underTest.updateRedeemHub(redeemHub);
+    emit IGenesisToken.genesisHubUpdated(genesisHub);
+    underTest.updategenesisHub(genesisHub);
 
-    assertEq(underTest.redeemHub(), redeemHub);
+    assertEq(underTest.genesisHub(), genesisHub);
+  }
+
+  function _mockApplyDifficulty(uint256 _amountIn) private {
+    vm.mockCall(genesisHub, abi.encodeWithSelector(IGenesisHub.applyDifficulty.selector), abi.encode(_amountIn));
   }
 }
 
@@ -305,15 +324,19 @@ contract GenesisTokenHarness is GenesisToken {
     return _onValidatorCrossChain(_to);
   }
 
-  function exposed_executeMint(address _to, bool _isMining) external returns (uint256 reward_) {
-    reward_ = _executeMint(_to, _isMining);
+  function exposed_executeMint(address _to, bool _isMining, uint256 _multiplier) external returns (uint256 reward_) {
+    reward_ = _executeMint(_to, _isMining, _multiplier);
   }
 
   function exposed_totalMintedSupply(uint256 _amount) external {
     totalMintedSupply += _amount;
   }
 
-  function exposed_calculateTokensToEmit(uint32 _timestamp, bool _withBonus) external view returns (uint256) {
-    return _calculateTokensToEmit(_timestamp, _withBonus);
+  function exposed_calculateTokensToEmit(uint32 _timestamp, bool _withBonus, uint256 _multiplier)
+    external
+    view
+    returns (uint256)
+  {
+    return _calculateTokensToEmit(_timestamp, _withBonus, _multiplier);
   }
 }
