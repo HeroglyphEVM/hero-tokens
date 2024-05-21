@@ -6,9 +6,7 @@ import { DefaultERC20 } from "./DefaultERC20.t.sol";
 contract MockERC20 is DefaultERC20 {
   bool private ignoreLogic;
 
-  constructor(string memory name_, string memory symbol_, uint8 decimals_)
-    DefaultERC20(name_, symbol_, decimals_)
-  { }
+  constructor(string memory name_, string memory symbol_, uint8 decimals_) DefaultERC20(name_, symbol_, decimals_) { }
 
   function transfer(address to, uint256 amount) public override returns (bool) {
     if (ignoreLogic) return true;
@@ -18,11 +16,7 @@ contract MockERC20 is DefaultERC20 {
     return true;
   }
 
-  function transferFrom(address from, address to, uint256 amount)
-    public
-    override
-    returns (bool)
-  {
+  function transferFrom(address from, address to, uint256 amount) public override returns (bool) {
     if (ignoreLogic) return true;
 
     _transfer(from, to, amount);

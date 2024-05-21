@@ -39,22 +39,11 @@ contract MockERC20ABI is Test {
   }
 
   function mockTotalSupply(address _token, uint256 _totalSupply) internal {
-    vm.mockCall(
-      _token, abi.encodeWithSignature(SIG_TOTAL_SUPPLY), abi.encode(_totalSupply)
-    );
+    vm.mockCall(_token, abi.encodeWithSignature(SIG_TOTAL_SUPPLY), abi.encode(_totalSupply));
   }
 
-  function mockAllowance(
-    address _token,
-    address _of,
-    address _spender,
-    uint256 _allowance
-  ) internal {
-    vm.mockCall(
-      _token,
-      abi.encodeWithSignature(SIG_ALLOWANCE, _of, _spender),
-      abi.encode(_allowance)
-    );
+  function mockAllowance(address _token, address _of, address _spender, uint256 _allowance) internal {
+    vm.mockCall(_token, abi.encodeWithSignature(SIG_ALLOWANCE, _of, _spender), abi.encode(_allowance));
   }
 
   function expectApprove(address _token, address _of, uint256 _amount) internal {
@@ -62,12 +51,8 @@ contract MockERC20ABI is Test {
     mockApprove(_token, _of, _amount, true);
   }
 
-  function mockApprove(address _token, address _of, uint256 _amount, bool _result)
-    internal
-  {
-    vm.mockCall(
-      _token, abi.encodeWithSignature(SIG_APPROVE, _of, _amount), abi.encode(_result)
-    );
+  function mockApprove(address _token, address _of, uint256 _amount, bool _result) internal {
+    vm.mockCall(_token, abi.encodeWithSignature(SIG_APPROVE, _of, _amount), abi.encode(_result));
   }
 
   function expectTransfer(address _token, address _to, uint256 _amount) internal {
@@ -75,37 +60,21 @@ contract MockERC20ABI is Test {
     mockTransfer(_token, _to, _amount, true);
   }
 
-  function mockTransfer(address _token, address _to, uint256 _amount, bool _result)
-    internal
-  {
-    vm.mockCall(
-      _token, abi.encodeWithSignature(SIG_TRANSFER, _to, _amount), abi.encode(_result)
-    );
+  function mockTransfer(address _token, address _to, uint256 _amount, bool _result) internal {
+    vm.mockCall(_token, abi.encodeWithSignature(SIG_TRANSFER, _to, _amount), abi.encode(_result));
   }
 
   function mockAnyTransfer(address _token) internal {
     vm.mockCall(_token, abi.encodeWithSignature(SIG_TRANSFER), abi.encode(true));
   }
 
-  function expectTransferFrom(address _token, address _from, address _to, uint256 _amount)
-    internal
-  {
+  function expectTransferFrom(address _token, address _from, address _to, uint256 _amount) internal {
     vm.expectCall(_token, abi.encodeWithSignature(SIG_TRANSFER_FROM, _from, _to, _amount));
     mockTransferFrom(_token, _from, _to, _amount, true);
   }
 
-  function mockTransferFrom(
-    address _token,
-    address _from,
-    address _to,
-    uint256 _amount,
-    bool _result
-  ) internal {
-    vm.mockCall(
-      _token,
-      abi.encodeWithSignature(SIG_TRANSFER_FROM, _from, _to, _amount),
-      abi.encode(_result)
-    );
+  function mockTransferFrom(address _token, address _from, address _to, uint256 _amount, bool _result) internal {
+    vm.mockCall(_token, abi.encodeWithSignature(SIG_TRANSFER_FROM, _from, _to, _amount), abi.encode(_result));
   }
 
   function mockAnyTransferFrom(address _token) internal {

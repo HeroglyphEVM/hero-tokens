@@ -47,10 +47,7 @@ library Create2 {
    * - the factory must have a balance of at least `amount`.
    * - if `amount` is non-zero, `bytecode` must have a `payable` constructor.
    */
-  function deploy(uint256 amount, bytes32 salt, bytes memory bytecode)
-    internal
-    returns (address addr)
-  {
+  function deploy(uint256 amount, bytes32 salt, bytes memory bytecode) internal returns (address addr) {
     if (address(this).balance < amount) {
       revert InsufficientBalance(address(this).balance, amount);
     }
@@ -70,11 +67,7 @@ library Create2 {
    * @dev Returns the address where a contract will be stored if deployed via {deploy}. Any change in the
    * `bytecodeHash` or `salt` will result in a new destination address.
    */
-  function computeAddress(bytes32 salt, bytes32 bytecodeHash)
-    internal
-    view
-    returns (address)
-  {
+  function computeAddress(bytes32 salt, bytes32 bytecodeHash) internal view returns (address) {
     return computeAddress(salt, bytecodeHash, address(this));
   }
 
@@ -82,11 +75,7 @@ library Create2 {
    * @dev Returns the address where a contract will be stored if deployed via {deploy} from a contract located at
    * `deployer`. If `deployer` is this contract's address, returns the same value as {computeAddress}.
    */
-  function computeAddress(bytes32 salt, bytes32 bytecodeHash, address deployer)
-    internal
-    pure
-    returns (address addr)
-  {
+  function computeAddress(bytes32 salt, bytes32 bytecodeHash, address deployer) internal pure returns (address addr) {
     /// @solidity memory-safe-assembly
     assembly {
       let ptr := mload(0x40) // Get free memory pointer
