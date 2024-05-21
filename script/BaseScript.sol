@@ -16,8 +16,7 @@ contract BaseScript is Script {
     string contractName;
   }
 
-  ICreateX private constant CREATE_X_FACTORY =
-    ICreateX(0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed);
+  ICreateX private constant CREATE_X_FACTORY = ICreateX(0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed);
 
   string private constant PATH_CONFIG = "/script/config/";
   string private constant ENV_PRIVATE_KEY = "DEPLOYER_PRIVATE_KEY";
@@ -28,7 +27,8 @@ contract BaseScript is Script {
 
   mapping(string => address) internal contracts;
 
-  //More info: https://github.com/pcaversaccio/createx/blob/776c97635c9d592e8a866e25f15d45b374892cf1/src/CreateX.sol#L873-L912
+  //More info:
+  // https://github.com/pcaversaccio/createx/blob/776c97635c9d592e8a866e25f15d45b374892cf1/src/CreateX.sol#L873-L912
   function _generateSeed(uint88 _id) internal view returns (bytes32) {
     if (_id == 0) revert("`_id` cannot be zero for seed");
     return bytes32(abi.encodePacked(_getDeployerAddress(), hex"00", bytes11(_id)));
@@ -53,8 +53,7 @@ contract BaseScript is Script {
     if (address(contract_) != address(0)) return (contract_, true);
 
     vm.broadcast(_getDeployerPrivateKey());
-    contract_ =
-      CREATE_X_FACTORY.deployCreate3(_salt, abi.encodePacked(_creationCode, _args));
+    contract_ = CREATE_X_FACTORY.deployCreate3(_salt, abi.encodePacked(_creationCode, _args));
 
     _saveDeployment(_name, contract_);
     return (contract_, false);
@@ -70,12 +69,10 @@ contract BaseScript is Script {
    * @return isAlreadyExisting_ If it was already deployed or not
    * @dev `_salt` can not be used twice for the same bytecode
    */
-  function _tryDeployContractCREATE2(
-    string memory _name,
-    bytes32 _salt,
-    bytes memory _creationCode,
-    bytes memory _args
-  ) internal returns (address contract_, bool isAlreadyExisting_) {
+  function _tryDeployContractCREATE2(string memory _name, bytes32 _salt, bytes memory _creationCode, bytes memory _args)
+    internal
+    returns (address contract_, bool isAlreadyExisting_)
+  {
     contract_ = contracts[_name];
     if (address(contract_) != address(0)) return (contract_, true);
 
@@ -95,12 +92,10 @@ contract BaseScript is Script {
    * @return contract_ Contract Address
    * @return isAlreadyExisting_ If it was already deployed or not
    */
-  function _tryDeployContract(
-    string memory _name,
-    uint256 _amount,
-    bytes memory _creationCode,
-    bytes memory _args
-  ) internal returns (address contract_, bool isAlreadyExisting_) {
+  function _tryDeployContract(string memory _name, uint256 _amount, bytes memory _creationCode, bytes memory _args)
+    internal
+    returns (address contract_, bool isAlreadyExisting_)
+  {
     contract_ = contracts[_name];
     if (address(contract_) != address(0)) return (contract_, true);
 
@@ -132,9 +127,7 @@ contract BaseScript is Script {
    * @dev Simulation broadcast will also save inside the deployments file. I haven't find a way to detect simulations
    * yet
    */
-  function _saveDeployment(string memory _contractName, address _contractAddress)
-    internal
-  {
+  function _saveDeployment(string memory _contractName, address _contractAddress) internal {
     vm.label(_contractAddress, _contractName);
     if (_isSimulation()) return;
 
@@ -232,11 +225,7 @@ contract BaseScript is Script {
    * @param _network the name of the network
    * @return deployments_ Array of Deployment[] Structure
    */
-  function _getDeployedContracts(string memory _network)
-    internal
-    view
-    returns (Deployment[] memory deployments_)
-  {
+  function _getDeployedContracts(string memory _network) internal view returns (Deployment[] memory deployments_) {
     bytes memory json = _getDeployedContractsJson(_network);
 
     if (keccak256(json) == keccak256("")) return deployments_;
@@ -249,11 +238,7 @@ contract BaseScript is Script {
    * @param _network the name of the network
    * @return jsonBytes_ Encoded version of the json
    */
-  function _getDeployedContractsJson(string memory _network)
-    private
-    view
-    returns (bytes memory jsonBytes_)
-  {
+  function _getDeployedContractsJson(string memory _network) private view returns (bytes memory jsonBytes_) {
     string memory fileData = vm.readFile(_getDeploymentPath(_network));
 
     if (fileData.toSlice().empty()) return jsonBytes_;
@@ -261,11 +246,7 @@ contract BaseScript is Script {
     return vm.parseJson(fileData);
   }
 
-  function _getDeploymentPath(string memory _network)
-    private
-    view
-    returns (string memory)
-  {
+  function _getDeploymentPath(string memory _network) private view returns (string memory) {
     string memory root = vm.projectRoot();
     string memory path = string.concat(root, DEPLOY_HISTORY_PATH);
     string memory file = string.concat(_network, ".json");
