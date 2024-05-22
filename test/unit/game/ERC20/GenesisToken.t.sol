@@ -93,7 +93,7 @@ contract GenesisTokenTest is BaseTest {
 
     assertEq(underTest.owner(), owner);
     assertEq(underTest.treasury(), treasury);
-    assertEq(underTest.feePayer(), feePayer);
+    assertEq(underTest.getFeePayer(), feePayer);
     assertEq(address(underTest.heroglyphRelay()), address(heroglyphRelay));
     assertEq(address(underTest.key()), address(key));
   }

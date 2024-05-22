@@ -11,7 +11,7 @@ import { MessagingFee, Origin } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oa
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
- * @title HeroOFTX
+ * @title HeroOFTXOperator
  * @notice Base OFT LZv2 with TickerOperation support
  */
 abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperator, HeroOFTX, TickerOperator {
@@ -46,9 +46,9 @@ abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperat
     uint32 _lzEndpointSelected,
     uint32 _blockMinted,
     address _validatorWithdrawer,
-    uint128 /*_maxFee*/
+    uint128 _feeToRepay
   ) external override onlyRelay {
-    //Avoid People from multi-tricker with a graffiti
+    //Avoid People from multi-ticker with a graffiti
     if (_blockMinted <= latestBlockMinted) return;
     if (address(key) != address(0) && key.balanceOf(_validatorWithdrawer) == 0) return;
 
@@ -64,7 +64,7 @@ abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperat
 
     totalMintedSupply += totalMinted;
 
-    _repayHeroglyph();
+    _repayHeroglyph(_feeToRepay);
   }
 
   function _validatorCrosschain(uint32 _lzDstEndpointId, address _to) internal virtual returns (uint256 totalMinted_) {
@@ -93,9 +93,9 @@ abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperat
 
     payload = abi.encode(_to, shareChainValue, fee.nativeFee);
 
-    _askFeePayerToPay(address(this), fee.nativeFee);
+    _askFeePayerToPay(address(this), uint128(fee.nativeFee));
 
-    _lzSend(_lzDstEndpointId, payload, options, fee, payable(feePayer));
+    _lzSend(_lzDstEndpointId, payload, options, fee, payable(getFeePayer()));
   }
 
   function _lzReceive(
