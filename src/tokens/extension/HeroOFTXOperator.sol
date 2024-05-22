@@ -11,10 +11,12 @@ import { MessagingFee, Origin } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oa
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
- * @title HeroOFTX
+ * @title HeroOFTXOperator
  * @notice Base OFT LZv2 with TickerOperation support
  */
 abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperator, HeroOFTX, TickerOperator {
+  bytes public constant ERROR_LZ_RETURNED_FALSE = hex"29870d9e"; //NotEnoughToLayerZeroFee.selector
+
   IKey public immutable key;
 
   address public wrappedNative;
@@ -46,9 +48,9 @@ abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperat
     uint32 _lzEndpointSelected,
     uint32 _blockMinted,
     address _validatorWithdrawer,
-    uint128 /*_maxFee*/
+    uint128 _feeToRepay
   ) external override onlyRelay {
-    //Avoid People from multi-tricker with a graffiti
+    //Avoid People from multi-ticker with a graffiti
     if (_blockMinted <= latestBlockMinted) return;
     if (address(key) != address(0) && key.balanceOf(_validatorWithdrawer) == 0) return;
 
@@ -64,17 +66,29 @@ abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperat
 
     totalMintedSupply += totalMinted;
 
-    _repayHeroglyph();
+    _repayHeroglyph(_feeToRepay);
   }
 
   function _validatorCrosschain(uint32 _lzDstEndpointId, address _to) internal virtual returns (uint256 totalMinted_) {
     (uint256 tokenIdOrAmount, uint256 totalMinted, bool success) = _onValidatorCrossChain(_to);
     if (!success) return 0;
 
-    try this.validatorLZSend(_lzDstEndpointId, _to, tokenIdOrAmount) { }
-    catch (bytes memory) {
+    bool lzSuccess;
+    bytes memory error_;
+
+    try this.validatorLZSend(_lzDstEndpointId, _to, tokenIdOrAmount) returns (bool success_) {
+      lzSuccess = success_;
+
+      if (!success_) {
+        error_ = ERROR_LZ_RETURNED_FALSE;
+      }
+    } catch (bytes memory returnedError) {
+      error_ = returnedError;
+    }
+
+    if (!lzSuccess) {
       _onValidatorCrossChainFailed(_to, tokenIdOrAmount);
-      emit OnCrossChainCallFails(_to, tokenIdOrAmount);
+      emit OnCrossChainCallFails(_to, tokenIdOrAmount, error_);
     }
 
     return totalMinted;
@@ -83,7 +97,7 @@ abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperat
   /**
    * @notice Allows for try-catch to prevent validators from missing their rewards due to fee/LZ issues.
    */
-  function validatorLZSend(uint32 _lzDstEndpointId, address _to, uint256 _amount) external {
+  function validatorLZSend(uint32 _lzDstEndpointId, address _to, uint256 _amount) external returns (bool success_) {
     if (msg.sender != address(this)) revert NoPermission();
     bytes memory options = defaultLzOption;
     uint64 shareChainValue = _toSharedDecimals(_amount);
@@ -93,9 +107,11 @@ abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperat
 
     payload = abi.encode(_to, shareChainValue, fee.nativeFee);
 
-    _askFeePayerToPay(address(this), fee.nativeFee);
+    //Returning false is cheaper than reverting
+    if (!_askFeePayerToPay(address(this), uint128(fee.nativeFee))) return false;
 
-    _lzSend(_lzDstEndpointId, payload, options, fee, payable(feePayer));
+    _lzSend(_lzDstEndpointId, payload, options, fee, payable(getFeePayer()));
+    return true;
   }
 
   function _lzReceive(

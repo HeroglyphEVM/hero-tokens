@@ -16,9 +16,12 @@
 		"@axelar-network/=node_modules/@axelar-network/",
 		"@chainlink/=node_modules/@chainlink/",
 		"@eth-optimism/=node_modules/@eth-optimism/",
-		"automate/=node_modules/@layerzerolabs/toolbox-foundry/lib/automate/",
+		"@openzeppelin/contracts/=node_modules/@layerzerolabs/toolbox-foundry/lib/heroglyph-library/lib/openzeppelin-contracts/contracts/",
+		"erc4626-tests/=node_modules/@layerzerolabs/toolbox-foundry/lib/heroglyph-library/lib/openzeppelin-contracts/lib/erc4626-tests/",
 		"hardhat-deploy/=node_modules/hardhat-deploy/",
 		"hardhat/=node_modules/hardhat/",
+		"heroglyph-library/=node_modules/@layerzerolabs/toolbox-foundry/lib/heroglyph-library/",
+		"openzeppelin-contracts/=node_modules/@layerzerolabs/toolbox-foundry/lib/heroglyph-library/lib/openzeppelin-contracts/",
 		"solidity-bytes-utils/=node_modules/solidity-bytes-utils/"
 	]
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import { IGasPool } from "heroglyph-library/src/ITickerOperator.sol";
+import { IGasPool } from "heroglyph-library/src/IGasPool.sol";
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 

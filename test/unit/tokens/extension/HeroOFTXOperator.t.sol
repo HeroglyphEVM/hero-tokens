@@ -4,7 +4,8 @@ pragma solidity ^0.8.4;
 import "../../../base/BaseTest.t.sol";
 
 import { HeroOFTXOperator, IHeroOFTXOperator } from "src/tokens/extension/HeroOFTXOperator.sol";
-import { ITickerOperator, IGasPool } from "heroglyph-library/src/ITickerOperator.sol";
+import { ITickerOperator } from "heroglyph-library/src/ITickerOperator.sol";
+import { IGasPool } from "heroglyph-library/src/IGasPool.sol";
 import { IHeroOFTX } from "src/tokens/IHeroOFTX.sol";
 
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -73,7 +74,6 @@ contract HeroOFTXOperatorTest is BaseTest {
 
     MessagingReceipt memory emptyMsg;
 
-    vm.mockCall(mockRelay, abi.encodeWithSignature("getExecutionNativeFee(uint128)"), abi.encode(0));
     vm.mockCall(mockLzEndpoint, abi.encodeWithSelector(ILayerZeroEndpointV2.send.selector), abi.encode(emptyMsg));
     vm.mockCall(feePayer, abi.encodeWithSelector(IGasPool.payTo.selector), abi.encode(true));
   }
@@ -88,6 +88,10 @@ contract HeroOFTXOperatorTest is BaseTest {
     assertEq(underTest.maxSupply(), MAX_SUPPLY);
     assertEq(underTest.getLatestBlockMinted(), 0);
     assertEq(underTest.localLzEndpointID(), LZ_ENDPOINT_ID);
+
+    assertEq(
+      underTest.ERROR_LZ_RETURNED_FALSE(), abi.encodeWithSelector(IHeroOFTXOperator.NotEnoughToLayerZeroFee.selector)
+    );
   }
 
   function test_onValidatorTriggered_asNonRelay_thenReverts() external {
@@ -96,10 +100,11 @@ contract HeroOFTXOperatorTest is BaseTest {
   }
 
   function test_onValidatorTriggered_whenValidatorDoesntHaveTheKey_thenDoNothing() external prankAs(mockRelay) {
+    underTest.onValidatorTriggered(LZ_ENDPOINT_ID, BLOCK, validator, 0);
     key.burn(validator, VALIDATOR_KEY_BALANCE);
 
-    vm.mockCallRevert(mockRelay, abi.encodeWithSignature("getExecutionNativeFee(uint128)"), "Revert");
-    underTest.onValidatorTriggered(LZ_ENDPOINT_ID, BLOCK, validator, 0);
+    underTest.onValidatorTriggered(LZ_ENDPOINT_ID, BLOCK + 1, validator, 0);
+    assertEq(underTest.getLatestBlockMinted(), BLOCK);
   }
 
   function test_onValidatorTriggered_whenKeyIsEmptyAddress_thenCallsValidatorSameChain() external prankAs(mockRelay) {
@@ -110,7 +115,6 @@ contract HeroOFTXOperatorTest is BaseTest {
     expectExactEmit();
     emit HeroOFTXHarness.OnValidatorSameChain(validator);
 
-    vm.expectCall(mockRelay, abi.encodeWithSignature("getExecutionNativeFee(uint128)"));
     underTest.onValidatorTriggered(LZ_ENDPOINT_ID, BLOCK, validator, 0);
 
     assertEq(underTest.getLatestBlockMinted(), BLOCK);
@@ -120,7 +124,6 @@ contract HeroOFTXOperatorTest is BaseTest {
     expectExactEmit();
     emit HeroOFTXHarness.OnValidatorSameChain(validator);
 
-    vm.expectCall(mockRelay, abi.encodeWithSignature("getExecutionNativeFee(uint128)"));
     underTest.onValidatorTriggered(LZ_ENDPOINT_ID, BLOCK, validator, 0);
 
     assertEq(underTest.getLatestBlockMinted(), BLOCK);
@@ -130,10 +133,8 @@ contract HeroOFTXOperatorTest is BaseTest {
     expectExactEmit();
     emit HeroOFTXHarness.OnValidatorSameChain(validator);
 
-    vm.expectCall(mockRelay, abi.encodeWithSignature("getExecutionNativeFee(uint128)"));
     underTest.onValidatorTriggered(LZ_ENDPOINT_ID, BLOCK, validator, 0);
 
-    vm.mockCallRevert(mockRelay, abi.encodeWithSignature("getExecutionNativeFee(uint128)"), "Revert");
     underTest.onValidatorTriggered(LZ_ENDPOINT_ID, BLOCK, validator, 0);
 
     assertEq(underTest.totalMintedSupply(), underTest.REWARD_PER_MINT());
@@ -143,10 +144,7 @@ contract HeroOFTXOperatorTest is BaseTest {
     expectExactEmit();
     emit HeroOFTXHarness.OnValidatorSameChain(validator);
 
-    vm.expectCall(mockRelay, abi.encodeWithSignature("getExecutionNativeFee(uint128)"));
     underTest.onValidatorTriggered(LZ_ENDPOINT_ID, BLOCK, validator, 0);
-
-    vm.expectCall(mockRelay, abi.encodeWithSignature("getExecutionNativeFee(uint128)"));
     underTest.onValidatorTriggered(LZ_ENDPOINT_ID, BLOCK + 1, validator, 0);
 
     assertEq(underTest.totalMintedSupply(), underTest.REWARD_PER_MINT() * 2);
@@ -165,28 +163,49 @@ contract HeroOFTXOperatorTest is BaseTest {
     expectExactEmit();
     emit HeroOFTXHarness.OnValidatorCrossChain(validator);
 
-    vm.expectCall(mockRelay, abi.encodeWithSignature("getExecutionNativeFee(uint128)"));
     underTest.onValidatorTriggered(LZ_ENDPOINT_ID_TWO, BLOCK, validator, 0);
     assertEq(underTest.totalMintedSupply(), 0);
+  }
+
+  function test_onValidatorTriggered_givenDifferentChain_whenReturnFalse_thenTriggersOnCrossChainFails()
+    external
+    pranking
+  {
+    changePrank(owner);
+    underTest.updateFeePayer(address(underTest));
+
+    changePrank(mockRelay);
+    uint64 reward = underTest.REWARD_PER_MINT();
+
+    expectExactEmit();
+    emit HeroOFTXHarness.OnValidatorCrossChain(validator);
+    expectExactEmit();
+    emit HeroOFTXHarness.OnValidatorCrossChainFailed(validator, reward);
+    expectExactEmit();
+    emit IHeroOFTXOperator.OnCrossChainCallFails(
+      validator, reward, abi.encodeWithSelector(IHeroOFTXOperator.NotEnoughToLayerZeroFee.selector)
+    );
+
+    underTest.onValidatorTriggered(LZ_ENDPOINT_ID_TWO, BLOCK, validator, 0);
+    assertEq(underTest.totalMintedSupply(), reward);
   }
 
   function test_onValidatorTriggered_givenDifferentChain_whenLzFails_thenTriggersOnCrossChainFails()
     external
     prankAs(mockRelay)
   {
+    bytes memory revertMsg = abi.encodePacked("Reverted");
     uint64 reward = underTest.REWARD_PER_MINT();
 
-    vm.mockCallRevert(
-      mockLzEndpoint, abi.encodeWithSelector(ILayerZeroEndpointV2.send.selector), abi.encode("Shouldnt be called")
-    );
+    vm.deal(address(underTest), 100e18);
+    vm.mockCallRevert(mockLzEndpoint, abi.encodeWithSelector(ILayerZeroEndpointV2.send.selector), revertMsg);
     expectExactEmit();
     emit HeroOFTXHarness.OnValidatorCrossChain(validator);
     expectExactEmit();
     emit HeroOFTXHarness.OnValidatorCrossChainFailed(validator, reward);
     expectExactEmit();
-    emit IHeroOFTXOperator.OnCrossChainCallFails(validator, reward);
+    emit IHeroOFTXOperator.OnCrossChainCallFails(validator, reward, revertMsg);
 
-    vm.expectCall(mockRelay, abi.encodeWithSignature("getExecutionNativeFee(uint128)"));
     underTest.onValidatorTriggered(LZ_ENDPOINT_ID_TWO, BLOCK, validator, 0);
     assertEq(underTest.totalMintedSupply(), reward);
   }
@@ -204,7 +223,6 @@ contract HeroOFTXOperatorTest is BaseTest {
     expectExactEmit();
     emit HeroOFTXHarness.OnValidatorCrossChain(validator);
 
-    vm.expectCall(mockRelay, abi.encodeWithSignature("getExecutionNativeFee(uint128)"));
     underTest.onValidatorTriggered(LZ_ENDPOINT_ID_TWO, BLOCK, validator, 0);
 
     assertEq(underTest.totalMintedSupply(), underTest.REWARD_PER_MINT());

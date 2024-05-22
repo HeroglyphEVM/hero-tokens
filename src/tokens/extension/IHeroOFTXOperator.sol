@@ -13,6 +13,7 @@ interface IHeroOFTXOperator {
   error NoAction();
   error NoPermission();
   error FailedToSendWETH();
+  error NotEnoughToLayerZeroFee();
 
   event TreasuryUpdated(address indexed treasury);
 
@@ -34,7 +35,7 @@ interface IHeroOFTXOperator {
     uint256 maxSupply;
   }
 
-  event OnCrossChainCallFails(address indexed validator, uint256 amountOrNftId);
+  event OnCrossChainCallFails(address indexed validator, uint256 amountOrNftId, bytes errorMessage);
 
   /**
    * @notice claimAction() When a validator sets a cross-chain in graffiti, they have to pay the LZ fee. The asset is
