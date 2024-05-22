@@ -88,6 +88,10 @@ contract HeroOFTXOperatorTest is BaseTest {
     assertEq(underTest.maxSupply(), MAX_SUPPLY);
     assertEq(underTest.getLatestBlockMinted(), 0);
     assertEq(underTest.localLzEndpointID(), LZ_ENDPOINT_ID);
+
+    assertEq(
+      underTest.ERROR_LZ_RETURNED_FALSE(), abi.encodeWithSelector(IHeroOFTXOperator.NotEnoughToLayerZeroFee.selector)
+    );
   }
 
   function test_onValidatorTriggered_asNonRelay_thenReverts() external {
@@ -163,21 +167,44 @@ contract HeroOFTXOperatorTest is BaseTest {
     assertEq(underTest.totalMintedSupply(), 0);
   }
 
-  function test_onValidatorTriggered_givenDifferentChain_whenLzFails_thenTriggersOnCrossChainFails()
+  function test_onValidatorTriggered_givenDifferentChain_whenReturnFalse_thenTriggersOnCrossChainFails()
     external
-    prankAs(mockRelay)
+    pranking
   {
+    changePrank(owner);
+    underTest.updateFeePayer(address(underTest));
+
+    changePrank(mockRelay);
     uint64 reward = underTest.REWARD_PER_MINT();
 
-    vm.mockCallRevert(
-      mockLzEndpoint, abi.encodeWithSelector(ILayerZeroEndpointV2.send.selector), abi.encode("Shouldnt be called")
-    );
     expectExactEmit();
     emit HeroOFTXHarness.OnValidatorCrossChain(validator);
     expectExactEmit();
     emit HeroOFTXHarness.OnValidatorCrossChainFailed(validator, reward);
     expectExactEmit();
-    emit IHeroOFTXOperator.OnCrossChainCallFails(validator, reward);
+    emit IHeroOFTXOperator.OnCrossChainCallFails(
+      validator, reward, abi.encodeWithSelector(IHeroOFTXOperator.NotEnoughToLayerZeroFee.selector)
+    );
+
+    underTest.onValidatorTriggered(LZ_ENDPOINT_ID_TWO, BLOCK, validator, 0);
+    assertEq(underTest.totalMintedSupply(), reward);
+  }
+
+  function test_onValidatorTriggered_givenDifferentChain_whenLzFails_thenTriggersOnCrossChainFails()
+    external
+    prankAs(mockRelay)
+  {
+    bytes memory revertMsg = abi.encodePacked("Reverted");
+    uint64 reward = underTest.REWARD_PER_MINT();
+
+    vm.deal(address(underTest), 100e18);
+    vm.mockCallRevert(mockLzEndpoint, abi.encodeWithSelector(ILayerZeroEndpointV2.send.selector), revertMsg);
+    expectExactEmit();
+    emit HeroOFTXHarness.OnValidatorCrossChain(validator);
+    expectExactEmit();
+    emit HeroOFTXHarness.OnValidatorCrossChainFailed(validator, reward);
+    expectExactEmit();
+    emit IHeroOFTXOperator.OnCrossChainCallFails(validator, reward, revertMsg);
 
     underTest.onValidatorTriggered(LZ_ENDPOINT_ID_TWO, BLOCK, validator, 0);
     assertEq(underTest.totalMintedSupply(), reward);
