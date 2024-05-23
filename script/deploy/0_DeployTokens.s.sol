@@ -192,6 +192,6 @@ contract DeployTokensScript is BaseScript, DeployUtils {
     }
 
     vm.broadcast(activeDeployer);
-    GenesisHub(payable(genesisHub)).setRedeeemSettings(genesisToHook, redeemSettings);
+    GenesisHub(payable(genesisHub)).setRedeemSettings(genesisToHook, redeemSettings);
   }
 }

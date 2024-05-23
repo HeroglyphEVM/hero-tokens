@@ -293,15 +293,15 @@ contract GenesisTokenTest is BaseTest {
     assertEq(abi.encode(genesisTokenData), abi.encode(underTest.getConfiguration()));
   }
 
-  function test_updategenesisHub_asUser_thenReverts() external prankAs(user) {
+  function test_updateGenesisHub_asUser_thenReverts() external prankAs(user) {
     vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
-    underTest.updategenesisHub(genesisHub);
+    underTest.updateGenesisHub(genesisHub);
   }
 
-  function test_updategenesisHub_asOwner_thenUpdates() external prankAs(owner) {
+  function test_updateGenesisHub_asOwner_thenUpdates() external prankAs(owner) {
     expectExactEmit();
     emit IGenesisToken.genesisHubUpdated(genesisHub);
-    underTest.updategenesisHub(genesisHub);
+    underTest.updateGenesisHub(genesisHub);
 
     assertEq(underTest.genesisHub(), genesisHub);
   }

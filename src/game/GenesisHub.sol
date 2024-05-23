@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import { GenesisToken } from "./ERC20/GenesisToken.sol";
+import { IGenesisToken } from "./interface/IGenesisToken.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IGenesisHub } from "./IGenesisHub.sol";
@@ -26,12 +26,12 @@ contract GenesisHub is IGenesisHub, Ownable {
     RedeemSettings memory settings = redeemSettings[_genesisToken];
 
     ERC20(settings.tokenInput).transferFrom(msg.sender, address(this), _redeemMultiplier * settings.ratePerRedeem);
-    uint256 reward = GenesisToken(payable(_genesisToken)).redeem(msg.sender, _redeemMultiplier);
+    uint256 reward = IGenesisToken(_genesisToken).redeem(msg.sender, _redeemMultiplier);
 
     emit RedeemToken(msg.sender, _genesisToken, reward);
   }
 
-  function setRedeeemSettings(address[] calldata _genesisToken, RedeemSettings[] calldata _settings) external onlyOwner {
+  function setRedeemSettings(address[] calldata _genesisToken, RedeemSettings[] calldata _settings) external onlyOwner {
     for (uint256 i = 0; i < _genesisToken.length; ++i) {
       _setRedeemSetting(_genesisToken[i], _settings[i]);
     }

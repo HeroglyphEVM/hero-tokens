@@ -4,8 +4,8 @@ pragma solidity ^0.8.4;
 import "../../../base/BaseTest.t.sol";
 
 import { HeroOFTXOperator, IHeroOFTXOperator } from "src/tokens/extension/HeroOFTXOperator.sol";
-import { ITickerOperator } from "heroglyph-library/src/ITickerOperator.sol";
-import { IGasPool } from "heroglyph-library/src/IGasPool.sol";
+import { ITickerOperator } from "heroglyph-library/ITickerOperator.sol";
+import { IGasPool } from "heroglyph-library/IGasPool.sol";
 import { IHeroOFTX } from "src/tokens/IHeroOFTX.sol";
 
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";

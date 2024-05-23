@@ -42,7 +42,7 @@ contract GenesisToken is OFT20Ticker, IGenesisToken {
     return (tokenIdOrAmount_, tokenIdOrAmount_, tokenIdOrAmount_ != 0);
   }
 
-  function redeem(address _to, uint256 _multiplier) external returns (uint256 rewardMinted_) {
+  function redeem(address _to, uint256 _multiplier) external override returns (uint256 rewardMinted_) {
     if (msg.sender != genesisHub) revert NotgenesisHub();
     if (address(key) != address(0) && key.balanceOf(_to) == 0) revert NoKeyDetected();
 
@@ -64,7 +64,7 @@ contract GenesisToken is OFT20Ticker, IGenesisToken {
     return reward_;
   }
 
-  function getNextReward() external view returns (uint256 redeemReward_, uint256 blockProducingReward_) {
+  function getNextReward() external view override returns (uint256 redeemReward_, uint256 blockProducingReward_) {
     redeemReward_ = _calculateTokensToEmit(uint32(block.timestamp), false, 1);
     blockProducingReward_ = _calculateTokensToEmit(uint32(block.timestamp), true, 1);
 
@@ -103,12 +103,12 @@ contract GenesisToken is OFT20Ticker, IGenesisToken {
     emit ConfigurationUpdated(_configuration);
   }
 
-  function updategenesisHub(address _genesisHub) external onlyOwner {
+  function updateGenesisHub(address _genesisHub) external onlyOwner {
     genesisHub = _genesisHub;
     emit genesisHubUpdated(_genesisHub);
   }
 
-  function getConfiguration() external view returns (GenesisConfiguration memory) {
+  function getConfiguration() external view override returns (GenesisConfiguration memory) {
     return configuration;
   }
 }
