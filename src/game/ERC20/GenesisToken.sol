@@ -64,9 +64,16 @@ contract GenesisToken is OFT20Ticker, IGenesisToken {
     return reward_;
   }
 
-  function getNextReward() external view override returns (uint256 redeemReward_, uint256 blockProducingReward_) {
-    redeemReward_ = _calculateTokensToEmit(uint32(block.timestamp), false, 1);
-    blockProducingReward_ = _calculateTokensToEmit(uint32(block.timestamp), true, 1);
+  function getNextReward(uint256 _multiplier)
+    external
+    view
+    override
+    returns (uint256 redeemReward_, uint256 blockProducingReward_)
+  {
+    if (_multiplier == 0) _multiplier = 1;
+
+    redeemReward_ = _calculateTokensToEmit(uint32(block.timestamp), false, _multiplier);
+    blockProducingReward_ = _calculateTokensToEmit(uint32(block.timestamp), true, _multiplier);
 
     return (redeemReward_, blockProducingReward_);
   }

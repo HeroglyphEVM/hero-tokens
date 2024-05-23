@@ -43,7 +43,7 @@
         "06_heroglyphAttestation": "0x0000000000000000000000000000000000000000",
         "07_heroglyphRelay": "0x0000000000000000000000000000000000000000"
     },
-    "avax":
+    "avalanche":
     {
         "00_owner": "0x888D768764A2E304215247F0bA3457cCb0f0ab4f", 
         "01_treasury": "0x888D768764A2E304215247F0bA3457cCb0f0ab4f", 
@@ -54,7 +54,7 @@
         "06_heroglyphAttestation": "0x0000000000000000000000000000000000000000",
         "07_heroglyphRelay": "0x0000000000000000000000000000000000000000"
     },
-    "op":
+    "optimism":
     {
         "00_owner": "0x888D768764A2E304215247F0bA3457cCb0f0ab4f", 
         "01_treasury": "0x888D768764A2E304215247F0bA3457cCb0f0ab4f", 

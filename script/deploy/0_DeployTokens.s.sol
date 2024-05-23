@@ -88,7 +88,7 @@ contract DeployTokensScript is BaseScript, DeployUtils {
 
       if (!config.isTestnet) heroArgs.key = token.key;
 
-      (tokenContractAddr, alreadyExisting) = _tryDeployLinearERC20(uint88(i), token, heroArgs);
+      (tokenContractAddr, alreadyExisting) = _tryDeployGenesis(uint88(i), token, heroArgs);
 
       if (!alreadyExisting) {
         genesisToHook.push(tokenContractAddr);
@@ -98,29 +98,34 @@ contract DeployTokensScript is BaseScript, DeployUtils {
 
     _connectAllToHub();
 
-    if (Ownable(genesisHub).owner() == deployerWallet) {
+    if (genesisHub != address(0) && Ownable(genesisHub).owner() == deployerWallet) {
       vm.broadcast(activeDeployer);
       GenesisHub(payable(genesisHub)).transferOwnership(config.owner);
     }
 
-    if (Ownable(gasPool).owner() == deployerWallet) {
+    if (gasPool != address(0) && Ownable(gasPool).owner() == deployerWallet) {
       vm.broadcast(activeDeployer);
       ExecutionPool(payable(gasPool)).transferOwnership(config.owner);
     }
   }
 
-  function _tryDeployLinearERC20(
+  function _tryDeployGenesis(
     uint88 id,
     TokenConfig memory _token,
     IHeroOFTXOperator.HeroOFTXOperatorArgs memory _heroArgs
   ) internal returns (address tokenContractAddr, bool alreadyExisting) {
     uint256 preMintAmount = Math.mulDiv(_token.maxSupply, _token.preMintAmountBPS, 10_000);
     uint256 fixedRate = (_token.maxSupply - preMintAmount) / _token.minimumDuration;
-
     uint256 bonus = _token.maxBonusFullDay;
 
     if (bonus == 0) {
       bonus = fixedRate * 3600;
+    }
+
+    if (!_isTestnet() && block.chainid != 42_161) {
+      preMintAmount = 0;
+      fixedRate = 0;
+      bonus = 0;
     }
 
     IGenesisToken.GenesisConfiguration memory genesisConfiguration =
@@ -176,7 +181,7 @@ contract DeployTokensScript is BaseScript, DeployUtils {
   }
 
   function _connectAllToHub() internal {
-    if (GenesisHub(genesisHub).owner() != deployerWallet) {
+    if (genesisHub == address(0) || GenesisHub(genesisHub).owner() != deployerWallet) {
       console.log("--- Not Owner of Genesis Hub --- ");
       console.log("Don't forgot to config GenesisHub! ", genesisHub);
       console.log("--- ---- --- ");

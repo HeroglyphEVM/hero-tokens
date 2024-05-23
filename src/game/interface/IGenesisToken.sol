@@ -28,6 +28,9 @@ interface IGenesisToken {
   event genesisHubUpdated(address genesisHub);
 
   function redeem(address _to, uint256 _multiplier) external returns (uint256 rewardMinted_);
-  function getNextReward() external view returns (uint256 redeemReward_, uint256 blockProducingReward_);
+  function getNextReward(uint256 _multiplier)
+    external
+    view
+    returns (uint256 redeemReward_, uint256 blockProducingReward_);
   function getConfiguration() external view returns (GenesisConfiguration memory);
 }
