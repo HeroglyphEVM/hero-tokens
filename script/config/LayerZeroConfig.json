@@ -1,0 +1,63 @@
+{
+
+    "arbitrum":
+    {
+        "00_messageLibReceiver": "0x7B9E184e07a6EE1aC23eAe0fe8D6Be2f663f05e6", 
+        "01_messageLibSender": "0x975bcD720be66659e3EB3C0e4F1866a3020E493A", 
+        "02_executioner":"0x31CAe3B7fB82d847621859fb1585353c5720660D", 
+        "03_lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+        "04_DVN": "0x2f55C492897526677C5B68fb199ea31E2c126416",
+        "05_endpointToConfig": [30214,30181,30183,30255],
+        "06_lzDeploymentChainEndpointId": 30110
+    },
+    "base":
+    {
+        "00_messageLibReceiver": "0xc70AB6f32772f59fBfc23889Caf4Ba3376C84bAf", 
+        "01_messageLibSender": "0xB5320B0B3a13cC860893E2Bd79FCd7e13484Dda2", 
+        "02_executioner":"0x2CCA08ae69E0C44b18a57Ab2A87644234dAebaE4", 
+        "03_lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+        "04_DVN": "0x9e059a54699a285714207b43B055483E78FAac25",
+        "05_endpointToConfig": [30214,30181,30183,30255],
+        "06_lzDeploymentChainEndpointId": 30184
+    },
+    "scroll":
+    {
+        "00_messageLibReceiver": "0x8363302080e711E0CAb978C081b9e69308d49808", 
+        "01_messageLibSender": "0x9BbEb2B2184B9313Cf5ed4a4DDFEa2ef62a2a03B", 
+        "02_executioner":"0x581b26F362AD383f7B51eF8A165Efa13DDe398a4", 
+        "03_lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+        "04_DVN": "0xbe0d08a85EeBFCC6eDA0A843521f7CBB1180D2e2",
+        "05_endpointToConfig": [30110,30184],
+        "06_lzDeploymentChainEndpointId": 30214
+    },
+    "mantle":
+    {
+        "00_messageLibReceiver": "0x8da6512De9379fBF4F09BF520Caf7a85435ed93e", 
+        "01_messageLibSender": "0xde19274c009A22921E3966a1Ec868cEba40A5DaC", 
+        "02_executioner":"0x4Fc3f4A38Acd6E4cC0ccBc04B3Dd1CCAeFd7F3Cd", 
+        "03_lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+        "04_DVN": "0x28B6140ead70cb2Fb669705b3598ffB4BEaA060b",
+        "05_endpointToConfig": [30110,30184],
+        "06_lzDeploymentChainEndpointId": 30181
+    },
+    "linea":
+    {
+        "00_messageLibReceiver": "0xE22ED54177CE1148C557de74E4873619e6c6b205", 
+        "01_messageLibSender": "0x32042142DD551b4EbE17B6FEd53131dd4b4eEa06", 
+        "02_executioner":"0x0408804C5dcD9796F22558464E6fE5bDdF16A7c7", 
+        "03_lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+        "04_DVN": "0x129Ee430Cb2Ff2708CCADDBDb408a88Fe4FFd480",
+        "05_endpointToConfig": [30110,30184],
+        "06_lzDeploymentChainEndpointId": 30183
+    },
+    "fraxtal":
+    {
+        "00_messageLibReceiver": "0x8bC1e36F015b9902B54b1387A4d733cebc2f5A4e", 
+        "01_messageLibSender": "0x377530cdA84DFb2673bF4d145DCF0C4D7fdcB5b6", 
+        "02_executioner":"0x41Bdb4aa4A63a5b2Efc531858d3118392B1A1C3d", 
+        "03_lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+        "04_DVN": "0xcCE466a522984415bC91338c232d98869193D46e",
+        "05_endpointToConfig": [30110,30184],
+        "06_lzDeploymentChainEndpointId": 30255
+    }
+}
