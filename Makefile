@@ -11,8 +11,8 @@ update:; forge update
 remappings:; forge remappings > remappings.txt
 
 # commands
-coverage :; forge coverage --ir-minimum
-coverage-output :; forge coverage --ir-minimum --report lcov
+coverage :; forge coverage
+coverage-output :; forge coverage --report lcov
 build  :; forge build --force 
 clean  :; forge clean
 
@@ -28,4 +28,4 @@ snapshot-fork :; forge snapshot --snap .gas-snapshot-fork $(RPC) $(EXTRA)
 slither :; slither --config-file ./slither-config.json src/
 
 deploy :; export IS_SIMULATION=false && forge script $(SCRIPT_NAME) --rpc-url $(RPC) --sig "run()" --broadcast --skip-simulation --verify -vvvv $(EXTRA)
-simulate-deploy :; export IS_SIMULATION=true && forge script $(SCRIPT_NAME) --fork-url $(RPC) --sig "run()" -vvvv $(EXTRA)
+simulate-deploy :; export IS_SIMULATION=true && forge script $(SCRIPT_NAME) --rpc-url $(RPC) --sig "run()" -vvvv $(EXTRA)

@@ -207,7 +207,7 @@ contract BaseScript is Script {
    * @notice _loadContracts - Loads the deployed contracts from a network inside the mapping "contracts"
    */
   function _loadContracts() internal {
-    if (_isSimulation()) return;
+    // if (_isSimulation()) return;
 
     Deployment[] memory deployments = _getDeployedContracts(_getNetwork());
 

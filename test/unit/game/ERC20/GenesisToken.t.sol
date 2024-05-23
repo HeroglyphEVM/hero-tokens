@@ -151,7 +151,7 @@ contract GenesisTokenTest is BaseTest {
 
   function test_redeem_whenWalletHasKey_thenRedeemsWithoutBonus() external prankAs(genesisHub) {
     skip(1 days);
-    (uint256 redeemReward, uint256 mintingReward) = underTest.getNextReward();
+    (uint256 redeemReward, uint256 mintingReward) = underTest.getNextReward(1);
 
     expectExactEmit();
     emit IGenesisToken.TokenRedeemed(user, redeemReward);
@@ -171,7 +171,7 @@ contract GenesisTokenTest is BaseTest {
     address to = generateAddress();
 
     skip(1 days);
-    (uint256 redeemReward, uint256 mintingReward) = underTest.getNextReward();
+    (uint256 redeemReward, uint256 mintingReward) = underTest.getNextReward(0);
 
     expectExactEmit();
     emit IGenesisToken.TokenRedeemed(to, redeemReward);
@@ -212,7 +212,7 @@ contract GenesisTokenTest is BaseTest {
 
   function test_executeMint_whenIsMiningFalse_thenReturnsRedeemReward() external {
     skip(1 days);
-    (uint256 redeemReward,) = underTest.getNextReward();
+    (uint256 redeemReward,) = underTest.getNextReward(1);
 
     uint256 returned = underTest.exposed_executeMint(user, false, 1);
     assertEq(returned, redeemReward);
@@ -221,7 +221,7 @@ contract GenesisTokenTest is BaseTest {
 
   function test_executeMint_whenIsMiningTrue_thenReturnsBlockProducingReward() external {
     skip(2 days);
-    (, uint256 blockProducingReward) = underTest.getNextReward();
+    (, uint256 blockProducingReward) = underTest.getNextReward(1);
 
     uint256 returned = underTest.exposed_executeMint(user, true, 1);
     assertEq(returned, blockProducingReward);
@@ -293,15 +293,15 @@ contract GenesisTokenTest is BaseTest {
     assertEq(abi.encode(genesisTokenData), abi.encode(underTest.getConfiguration()));
   }
 
-  function test_updategenesisHub_asUser_thenReverts() external prankAs(user) {
+  function test_updateGenesisHub_asUser_thenReverts() external prankAs(user) {
     vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
-    underTest.updategenesisHub(genesisHub);
+    underTest.updateGenesisHub(genesisHub);
   }
 
-  function test_updategenesisHub_asOwner_thenUpdates() external prankAs(owner) {
+  function test_updateGenesisHub_asOwner_thenUpdates() external prankAs(owner) {
     expectExactEmit();
     emit IGenesisToken.genesisHubUpdated(genesisHub);
-    underTest.updategenesisHub(genesisHub);
+    underTest.updateGenesisHub(genesisHub);
 
     assertEq(underTest.genesisHub(), genesisHub);
   }

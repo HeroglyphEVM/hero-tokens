@@ -111,7 +111,7 @@
     },
     {
         "01_name": "frxBULLAS",
-        "02_symbol": "$frxBULLAS",
+        "02_symbol": "frxBULLAS",
         "03_maxSupply": 333333333333333000000000000000000,
         "04_key": "0x1910bFE60B28b751b19Ba1C266674eB61b7e6D2B",
         "05_preMintAmountBPS": 3300,
