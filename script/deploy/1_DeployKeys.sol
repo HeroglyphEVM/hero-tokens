@@ -17,7 +17,6 @@ contract DeployKeysScript is BaseScript, DeployUtils {
     uint256 cost;
   }
 
-  string private constant CONFIG_NAME = "ProtocolConfig";
   string private constant KEYS_DATA = "KeysMetadata";
 
   uint256 activeDeployer;
