@@ -18,7 +18,7 @@
         "03_lzDeploymentChainEndpointId": 30110, 
         "04_nativeTokenWrapped": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
         "05_isTestnet": false,
-        "06_heroglyphAttestation": "0xbf832A19316E234B73aCEFbbE1eb93726928b54a",
+        "06_heroglyphAttestation": "0xE1439f74Cd5286Bf28B08978703BEd2068DE4260",
         "07_heroglyphRelay": "0xa30cCE750cbE9664A0e46C323Fa2ed5376B25A93"
     },
     "polygon":

@@ -1,5 +1,4 @@
 {
-
     "arbitrum":
     {
         "00_messageLibReceiver": "0x7B9E184e07a6EE1aC23eAe0fe8D6Be2f663f05e6", 
@@ -7,7 +6,7 @@
         "02_executioner":"0x31CAe3B7fB82d847621859fb1585353c5720660D", 
         "03_lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
         "04_DVN": "0x2f55C492897526677C5B68fb199ea31E2c126416",
-        "05_endpointToConfig": [30214,30181,30183,30255],
+        "05_endpointToConfig": [30184,30109,30145,30111,30214,30181,30183,30255],
         "06_lzDeploymentChainEndpointId": 30110
     },
     "base":
@@ -17,8 +16,36 @@
         "02_executioner":"0x2CCA08ae69E0C44b18a57Ab2A87644234dAebaE4", 
         "03_lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
         "04_DVN": "0x9e059a54699a285714207b43B055483E78FAac25",
-        "05_endpointToConfig": [30214,30181,30183,30255],
+        "05_endpointToConfig": [30110,30109,30145,30111,30214,30181,30183,30255],
         "06_lzDeploymentChainEndpointId": 30184
+    },
+    "polygon":
+    {
+        "00_messageLibReceiver": "0x1322871e4ab09Bc7f5717189434f97bBD9546e95", 
+        "01_messageLibSender": "0x6c26c61a97006888ea9E4FA36584c7df57Cd9dA3", 
+        "02_executioner":"0xCd3F213AD101472e1713C72B1697E727C803885b", 
+        "03_lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+        "04_DVN": "0x23DE2FE932d9043291f870324B74F820e11dc81A",
+        "05_endpointToConfig": [30110,30184],
+        "06_lzDeploymentChainEndpointId": 30109
+    },
+    "gnosis": {
+        "00_messageLibReceiver": "0x9714Ccf1dedeF14BaB5013625DB92746C1358cb4", 
+        "01_messageLibSender": "0x3C156b1f625D2B4E004D43E91aC2c3a719C29c7B", 
+        "02_executioner":"0x38340337f9ADF5D76029Ab3A667d34E5a032F7BA", 
+        "03_lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+        "04_DVN": "0x11bb2991882a86Dc3E38858d922559A385d506bA",
+        "05_endpointToConfig": [30110,30184],
+        "06_lzDeploymentChainEndpointId": 30145 
+    },
+    "optimism": {
+        "00_messageLibReceiver": "0x3c4962Ff6258dcfCafD23a814237B7d6Eb712063", 
+        "01_messageLibSender": "0x1322871e4ab09Bc7f5717189434f97bBD9546e95", 
+        "02_executioner":"0x2D2ea0697bdbede3F01553D2Ae4B8d0c486B666e", 
+        "03_lzEndpoint": "0x1a44076050125825900e736c501f859c50fE728c",
+        "04_DVN": "0x6A02D83e8d433304bba74EF1c427913958187142",
+        "05_endpointToConfig": [30110,30184],
+        "06_lzDeploymentChainEndpointId": 30111 
     },
     "scroll":
     {
