@@ -13,22 +13,11 @@ import { GenesisToken, IGenesisToken } from "src/game/ERC20/GenesisToken.sol";
 import { GenesisHub, IGenesisHub } from "src/game/GenesisHub.sol";
 import { ExecutionPool } from "src/game/ExecutionPool.sol";
 
+import { ILayerZeroEndpointV2 } from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+
+import "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/IMessageLibManager.sol";
+
 contract DeployTokensScript is BaseScript, DeployUtils {
-  struct TokenConfig {
-    string name;
-    string symbol;
-    uint256 maxSupply;
-    address key;
-    uint256 preMintAmountBPS;
-    uint256 minimumDuration;
-    uint256 maxBonusFullDay;
-    uint32 immunity;
-    uint32[] sourceLzEndpoints;
-  }
-
-  string private constant CONFIG_NAME = "ProtocolConfig";
-  string private constant TOKEN_DATA = "TokensMetadata";
-
   Config config;
   uint256 activeDeployer;
   address deployerWallet;
@@ -37,6 +26,7 @@ contract DeployTokensScript is BaseScript, DeployUtils {
   address genesisHub;
 
   address[] private genesisToHook;
+  uint32[] private relatedLzEndpointToConfig;
 
   function run() external {
     activeDeployer = _getDeployerPrivateKey();
@@ -161,6 +151,13 @@ contract DeployTokensScript is BaseScript, DeployUtils {
         GenesisToken(payable(tokenContractAddr)).setPeer(hookId, bytes32(abi.encode(tokenContractAddr)));
       }
 
+      try this._connectLayerZeroChain(tokenContractAddr, _token.sourceLzEndpoints) {
+        console.log(_token.name, tokenContractAddr, "has been lz configured");
+      } catch (bytes memory) { }
+
+      vm.broadcast(activeDeployer);
+      GenesisToken(payable(tokenContractAddr)).setDelegate(config.treasury);
+
       vm.broadcast(activeDeployer);
       GenesisToken(payable(tokenContractAddr)).transferOwnership(config.treasury);
     }
@@ -198,5 +195,67 @@ contract DeployTokensScript is BaseScript, DeployUtils {
 
     vm.broadcast(activeDeployer);
     GenesisHub(payable(genesisHub)).setRedeemSettings(genesisToHook, redeemSettings);
+  }
+
+  function _connectLayerZeroChain(address _token, uint32[] calldata _tokenLzConnections) external {
+    console.log("Trying to connect Lz Chain of [", _token, "] from", _getNetwork());
+
+    LayerZeroConfig memory lzConfig =
+      abi.decode(vm.parseJson(_getConfig(LZ_CONFIG_NAME), string.concat(".", _getNetwork())), (LayerZeroConfig));
+
+    console.log("Layer Config Found for", _getNetwork());
+
+    SetConfigParam[] memory sendingConfig = new SetConfigParam[](1);
+    ULNConfigStructType memory uln;
+    ExecutorConfigStructType memory executor;
+
+    address[] memory DVN = new address[](1);
+    DVN[0] = lzConfig.DVN;
+
+    delete relatedLzEndpointToConfig;
+
+    for (uint32 i = 0; i < lzConfig.endpointToConfig.length; i++) {
+      for (uint32 x = 0; x < _tokenLzConnections.length; x++) {
+        if (lzConfig.endpointToConfig[i] != _tokenLzConnections[x]) continue;
+
+        relatedLzEndpointToConfig.push(_tokenLzConnections[x]);
+      }
+    }
+
+    if (relatedLzEndpointToConfig.length == 0) {
+      console.log("No LZ Configuration set for ", _token);
+      revert("No LZConfig to do");
+    }
+    for (uint32 i = 0; i < relatedLzEndpointToConfig.length; i++) {
+      sendingConfig[0].eid = relatedLzEndpointToConfig[i];
+
+      uln = ULNConfigStructType({
+        confirmations: 20,
+        requiredDVNCount: uint8(DVN.length),
+        optionalDVNCount: 0,
+        optionalDVNThreshold: 0,
+        requiredDVNs: DVN,
+        optionalDVNs: new address[](0)
+      });
+
+      executor = ExecutorConfigStructType({ maxMessageSize: 1024, executorAddress: lzConfig.executioner });
+
+      sendingConfig[0].config = abi.encode(uln);
+      sendingConfig[0].configType = 2;
+
+      //Read
+
+      vm.broadcast(activeDeployer);
+      ILayerZeroEndpointV2(lzConfig.lzEndpoint).setConfig(_token, lzConfig.messageLibReceiver, sendingConfig);
+      vm.broadcast(activeDeployer);
+      ILayerZeroEndpointV2(lzConfig.lzEndpoint).setConfig(_token, lzConfig.messageLibSender, sendingConfig);
+
+      //messageLibWrite
+      sendingConfig[0].config = abi.encode(executor);
+      sendingConfig[0].configType = 1;
+
+      vm.broadcast(activeDeployer);
+      ILayerZeroEndpointV2(lzConfig.lzEndpoint).setConfig(_token, lzConfig.messageLibSender, sendingConfig);
+    }
   }
 }

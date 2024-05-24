@@ -13,6 +13,52 @@ abstract contract DeployUtils {
     address heroglyphRelay;
   }
 
+  struct TokenConfig {
+    string name;
+    string symbol;
+    uint256 maxSupply;
+    address key;
+    uint256 preMintAmountBPS;
+    uint256 minimumDuration;
+    uint256 maxBonusFullDay;
+    uint32 immunity;
+    uint32[] sourceLzEndpoints;
+  }
+
+  struct LayerZeroConfig {
+    address messageLibReceiver;
+    address messageLibSender;
+    address executioner;
+    address lzEndpoint;
+    address DVN;
+    uint32[] endpointToConfig;
+    uint32 lzDeploymentChainEndpointId;
+  }
+
+  struct ULNConfigStructType {
+    uint64 confirmations;
+    uint8 requiredDVNCount;
+    uint8 optionalDVNCount;
+    uint8 optionalDVNThreshold;
+    address[] requiredDVNs;
+    address[] optionalDVNs;
+  }
+
+  struct ExecutorConfigStructType {
+    uint32 maxMessageSize;
+    address executorAddress;
+  }
+
+  struct SendingConfig {
+    uint32 eid;
+    uint32 configType;
+    bytes config;
+  }
+
+  string internal constant CONFIG_NAME = "ProtocolConfig";
+  string internal constant TOKEN_DATA = "TokensMetadata";
+  string internal constant LZ_CONFIG_NAME = "LayerZeroConfig";
+
   string internal constant GAS_POOL_NAME = "GasPool";
   string internal constant GENESIS_HUB_NAME = "GenesisHub";
 
