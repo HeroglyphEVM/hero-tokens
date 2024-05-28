@@ -202,7 +202,7 @@ abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperat
   function _payNative(uint256 _nativeFee) internal override returns (uint256 nativeFee) {
     uint256 balance = address(this).balance;
 
-    if (msg.value != 0 && msg.value < _nativeFee) revert NotEnoughNative(msg.value);
+    if (msg.value != 0 && msg.value != _nativeFee) revert NotEnoughNative(msg.value);
     if (msg.value == 0 && balance < _nativeFee) revert NotEnoughNative(balance);
 
     return _nativeFee;

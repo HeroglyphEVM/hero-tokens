@@ -554,13 +554,14 @@ contract HeroOFTXOperatorTest is BaseTest {
     underTest.exposed_payNative{ value: balance }(balance + 1);
   }
 
-  function test_payNative_whenMsgValueHighEnough_thenReturnsNativeFee() external prankAs(user) {
-    uint256 sending = 1e18;
-    uint256 fee = sending - 0.05e18;
+  function test_payNative_whenMsgValueTooHighEnough_thenReverts() external prankAs(user) {
+    uint256 sending = 1.25e18;
 
-    uint256 returnedFee = underTest.exposed_payNative{ value: sending }(fee);
+    vm.expectRevert(abi.encodeWithSignature("NotEnoughNative(uint256)", sending));
+    underTest.exposed_payNative{ value: sending }(sending + 1);
 
-    assertEq(returnedFee, fee);
+    vm.expectRevert(abi.encodeWithSignature("NotEnoughNative(uint256)", sending));
+    underTest.exposed_payNative{ value: sending }(sending - 1);
   }
 
   function test_payNative_whenWhenContractBalanceIsHighEnough_thenReturnsNativeFee() external prankAs(user) {
@@ -568,7 +569,7 @@ contract HeroOFTXOperatorTest is BaseTest {
     uint256 fee = sending - 0.05e18;
 
     vm.deal(address(underTest), sending);
-    uint256 returnedFee = underTest.exposed_payNative{ value: sending }(fee);
+    uint256 returnedFee = underTest.exposed_payNative(fee);
 
     assertEq(returnedFee, fee);
   }
