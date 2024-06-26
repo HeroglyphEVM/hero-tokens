@@ -100,12 +100,10 @@ abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperat
   function validatorLZSend(uint32 _lzDstEndpointId, address _to, uint256 _amount) external returns (bool success_) {
     if (msg.sender != address(this)) revert NoPermission();
     bytes memory options = defaultLzOption;
-    uint64 shareChainValue = _toSharedDecimals(_amount);
+    bytes memory payload = abi.encode(_to, _amount, 1e18);
 
-    bytes memory payload = abi.encode(_to, shareChainValue, 1e18);
     MessagingFee memory fee = _quote(_lzDstEndpointId, payload, options, false);
-
-    payload = abi.encode(_to, shareChainValue, fee.nativeFee);
+    payload = abi.encode(_to, _amount, fee.nativeFee);
 
     //Returning false is cheaper than reverting
     if (!_askFeePayerToPay(address(this), uint128(fee.nativeFee))) return false;
@@ -121,13 +119,12 @@ abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperat
     address, /*_executor*/ // @dev unused in the default implementation.
     bytes calldata /*_extraData*/ // @dev unused in the default implementation.
   ) internal virtual override {
-    (address to, uint64 idOrAmount, uint256 fee) = abi.decode(_message, (address, uint64, uint256));
-    uint256 amountLD = _toLocalDecimals(idOrAmount);
+    (address to, uint256 idOrAmount, uint256 fee) = abi.decode(_message, (address, uint256, uint256));
     if (fee != 0) {
-      requireActions[_origin.srcEid][to].push(RequireAction(amountLD, uint128(fee)));
+      requireActions[_origin.srcEid][to].push(RequireAction(idOrAmount, uint128(fee)));
     }
 
-    uint256 amountReceivedLD = _credit(to, amountLD, fee > 0);
+    uint256 amountReceivedLD = _credit(to, idOrAmount, fee > 0);
     emit OFTReceived(_guid, _origin.srcEid, to, amountReceivedLD);
   }
 
@@ -195,8 +192,8 @@ abstract contract HeroOFTXOperator is IHeroOFTXOperator, HeroOFTXCallbacksOperat
     return amountDue_;
   }
 
-  function _generateMessage(address _to, uint256 _amountOrId) internal view override returns (bytes memory) {
-    return abi.encode(_to, _toSharedDecimals(_amountOrId), 0);
+  function _generateMessage(address _to, uint256 _amountOrId) internal pure override returns (bytes memory) {
+    return abi.encode(_to, _amountOrId, 0);
   }
 
   function _payNative(uint256 _nativeFee) internal override returns (uint256 nativeFee) {

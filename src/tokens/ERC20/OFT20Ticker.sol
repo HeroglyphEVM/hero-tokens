@@ -3,8 +3,7 @@
 pragma solidity ^0.8.0;
 
 import { HeroOFTXOperator } from "../extension/HeroOFTXOperator.sol";
-import { BaseOFT20, ERC20 } from "./BaseOFT20.sol";
-
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
@@ -14,7 +13,7 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
  * - _onValidatorSameChain(address _to)
  * - _onValidatorCrossChain(address _to)
  */
-abstract contract OFT20Ticker is BaseOFT20, HeroOFTXOperator {
+abstract contract OFT20Ticker is ERC20, HeroOFTXOperator {
   error FeeTooHigh();
   error EmptyFeeCollector();
 
@@ -29,7 +28,7 @@ abstract contract OFT20Ticker is BaseOFT20, HeroOFTXOperator {
     address _feeCollector,
     uint32 _crossChainFee,
     HeroOFTXOperatorArgs memory _heroArgs
-  ) ERC20(_name, _symbol) HeroOFTXOperator(_heroArgs) BaseOFT20(18) {
+  ) ERC20(_name, _symbol) HeroOFTXOperator(_heroArgs) {
     crossChainFee = _crossChainFee;
     feeCollector = _feeCollector;
 
@@ -38,14 +37,6 @@ abstract contract OFT20Ticker is BaseOFT20, HeroOFTXOperator {
 
   function _onValidatorCrossChainFailed(address _to, uint256 _amount) internal override {
     _mint(_to, _amount);
-  }
-
-  function _toLocalDecimals(uint64 _value) internal view override returns (uint256) {
-    return _toLD(_value);
-  }
-
-  function _toSharedDecimals(uint256 _value) internal view override returns (uint64) {
-    return _toSD(_value);
   }
 
   function _credit(address _to, uint256 _value, bool _isFrozen) internal override returns (uint256) {
@@ -76,10 +67,9 @@ abstract contract OFT20Ticker is BaseOFT20, HeroOFTXOperator {
   function _debitView(uint256 _amountLD, uint256 _minAmountLD)
     internal
     view
-    override
     returns (uint256 amountSentLD, uint256 amountReceivedLD)
   {
-    amountSentLD = _removeDust(_amountLD);
+    amountSentLD = _amountLD;
     amountReceivedLD = amountSentLD - Math.mulDiv(amountSentLD, crossChainFee, MAX_BPS);
 
     if (amountReceivedLD < _minAmountLD) {

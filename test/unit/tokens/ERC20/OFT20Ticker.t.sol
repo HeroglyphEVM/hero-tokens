@@ -85,18 +85,6 @@ contract OFT20TickerTest is BaseTest {
     assertEq(underTest.balanceOf(user), 100e18);
   }
 
-  function test_toLocalDecimals_thenAppliesConversion() external view {
-    uint64 value = 239.88e6;
-    uint256 expected = uint256(value) * (10 ** (18 - 6));
-    assertEq(underTest.exposed_toLocalDecimals(value), expected);
-  }
-
-  function test_toSharedDecimals_thenAppliesConversion() external view {
-    uint256 value = 289.88e18;
-    uint64 expected = uint64(value / (10 ** (18 - 6)));
-    assertEq(underTest.exposed_toSharedDecimals(value), expected);
-  }
-
   function test_credit_givenFrozen_thenDoNotMint() external {
     uint256 value = 11.1e18;
     uint256 returnedValue = underTest.exposed_credit(user, value, true);
@@ -240,13 +228,5 @@ contract OFT20TickerHarness is OFT20Ticker {
 
   function exposed_credit(address _to, uint256 _value, bool _isFrozen) external returns (uint256) {
     return _credit(_to, _value, _isFrozen);
-  }
-
-  function exposed_toLocalDecimals(uint64 _value) external view returns (uint256) {
-    return _toLocalDecimals(_value);
-  }
-
-  function exposed_toSharedDecimals(uint256 _value) external view virtual returns (uint64) {
-    return _toSharedDecimals(_value);
   }
 }

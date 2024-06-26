@@ -52,21 +52,10 @@ abstract contract HeroOFTX is IHeroOFTX, HeroOFTXCallbacks, OApp, HeroOFTErrors 
     address, /*_executor*/ // @dev unused in the default implementation.
     bytes calldata /*_extraData*/ // @dev unused in the default implementation.
   ) internal virtual override {
-    (address to, uint64 idOrAmount) = abi.decode(_message, (address, uint64));
-    uint256 amountReceivedLD = _credit(to, _toLocalDecimals(idOrAmount), false);
+    (address to, uint256 idOrAmount) = abi.decode(_message, (address, uint256));
+    uint256 amountReceivedLD = _credit(to, idOrAmount, false);
 
     emit OFTReceived(_guid, _origin.srcEid, to, amountReceivedLD);
-  }
-
-  /**
-   * @notice _toLocalDecimals Scale back to local chain decimals
-   * @param _value Value from the message
-   * @dev This function must be overridden by ERCs that handle high balances
-   * @dev For ERC721, this won't be an issue since there are no collections that reach uint64.max
-   * @dev Refer to BaseERC20.sol for more details.
-   */
-  function _toLocalDecimals(uint64 _value) internal view virtual returns (uint256) {
-    return _value;
   }
 
   function estimateFee(uint32 _dstEid, address _to, uint256 _tokenId) external view returns (uint256) {
@@ -74,7 +63,7 @@ abstract contract HeroOFTX is IHeroOFTX, HeroOFTXCallbacks, OApp, HeroOFTErrors 
   }
 
   function _generateMessage(address _to, uint256 _amountOrId) internal view virtual returns (bytes memory) {
-    return abi.encode(_to, _toSharedDecimals(_amountOrId));
+    return abi.encode(_to, _amountOrId);
   }
 
   function _estimateFee(uint32 _dstEid, bytes memory _message, bytes memory _options)
@@ -83,19 +72,6 @@ abstract contract HeroOFTX is IHeroOFTX, HeroOFTXCallbacks, OApp, HeroOFTErrors 
     returns (MessagingFee memory fee_)
   {
     return _quote(_dstEid, _message, _options, false);
-  }
-
-  /**
-   * @notice _toSharedDecimals Scale back to share chain decimals, some chains only support 6 decimals
-   * @param _value Amount sending to another chain
-   * @dev This function must be overridden by ERCs that handle high balances
-   * @dev For ERC721, this won't be an issue since there are no collections that reach uint64.max
-   * @dev Refer to BaseERC20.sol for more details.
-   */
-  function _toSharedDecimals(uint256 _value) internal view virtual returns (uint64) {
-    if (_value > type(uint64).max) revert ConversionOutOfBounds();
-
-    return uint64(_value);
   }
 
   /**
