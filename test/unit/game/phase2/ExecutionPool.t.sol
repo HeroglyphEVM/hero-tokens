@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
-import "../../base/BaseTest.t.sol";
+import "../../../base/BaseTest.t.sol";
 
-import { ExecutionPool } from "src/game/ExecutionPool.sol";
+import { ExecutionPool } from "src/game/phase2/ExecutionPool.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 

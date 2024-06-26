@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../BaseScript.sol";
 import { DeployUtils } from "../utils/DeployUtils.sol";
 
-import { KeyOFT721 } from "src/game/ERC721/KeyOFT721.sol";
+import { KeyOFT721 } from "src/game/phase2/ERC721/KeyOFT721.sol";
 
 contract DeployKeysScript is BaseScript, DeployUtils {
   struct KeyConfig {

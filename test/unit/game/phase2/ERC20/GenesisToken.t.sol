@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
-import "../../../base/BaseTest.t.sol";
+import "../../../../base/BaseTest.t.sol";
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { GenesisToken, IGenesisToken } from "src/game/ERC20/GenesisToken.sol";
-import { IGenesisHub } from "src/game/IGenesisHub.sol";
+import { GenesisToken, IGenesisToken } from "src/game/phase2/ERC20/GenesisToken.sol";
+import { IGenesisHub } from "src/game/phase2/IGenesisHub.sol";
 
 import { IHeroOFTXOperator } from "src/tokens/extension/IHeroOFTXOperator.sol";
 

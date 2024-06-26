@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
-import "../../base/BaseTest.t.sol";
+import "../../../base/BaseTest.t.sol";
 
-import { GenesisHub, IGenesisHub } from "src/game/GenesisHub.sol";
+import { GenesisHub, IGenesisHub } from "src/game/phase2/GenesisHub.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { MockERC20 } from "test/mock/contract/MockERC20.t.sol";
 
-import { IGenesisToken } from "src/game/interface/IGenesisToken.sol";
+import { IGenesisToken } from "src/game/phase2/interface/IGenesisToken.sol";
 
 contract GenesisHubTest is BaseTest {
   uint256 public constant MAX_DIFFICULTY = 1e18;
