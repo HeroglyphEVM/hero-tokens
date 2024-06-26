@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import { OFT20Ticker } from "./../../tokens/ERC20/OFT20Ticker.sol";
+import { OFT20Ticker } from "src/tokens/ERC20/OFT20Ticker.sol";
 import { IGenesisToken } from "./../interface/IGenesisToken.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 

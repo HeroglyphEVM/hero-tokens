@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
-import "../../../base/BaseTest.t.sol";
-import { KeyOFT721 } from "src/game/ERC721/KeyOFT721.sol";
+import "../../../../base/BaseTest.t.sol";
+import { KeyOFT721 } from "src/game/phase2/ERC721/KeyOFT721.sol";
 import { MockERC20 } from "test/mock/contract/MockERC20.t.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 

@@ -9,9 +9,9 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 import { IHeroOFTXOperator } from "src/tokens/extension/IHeroOFTXOperator.sol";
-import { GenesisToken, IGenesisToken } from "src/game/ERC20/GenesisToken.sol";
-import { GenesisHub, IGenesisHub } from "src/game/GenesisHub.sol";
-import { ExecutionPool } from "src/game/ExecutionPool.sol";
+import { GenesisToken, IGenesisToken } from "src/game/phase2/ERC20/GenesisToken.sol";
+import { GenesisHub, IGenesisHub } from "src/game/phase2/GenesisHub.sol";
+import { ExecutionPool } from "src/game/phase2/ExecutionPool.sol";
 
 import { ILayerZeroEndpointV2 } from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
