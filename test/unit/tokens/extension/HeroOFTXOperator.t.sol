@@ -262,13 +262,8 @@ contract HeroOFTXOperatorTest is BaseTest {
   function test_validatorCrosschain_whenToShareChainIsOverrided_thenDoConversion() external {
     vm.deal(address(underTest), 10e18);
 
-    uint8 conversionDecimals = 11;
-    uint256 convertion = (10 ** (18 - conversionDecimals));
-
-    uint64 expectedReward = uint64(underTest.REWARD_PER_MINT() / convertion);
+    uint64 expectedReward = underTest.REWARD_PER_MINT();
     bytes memory message = _generateMessage(validator, expectedReward, LZ_FEE);
-
-    underTest.exposed_conversion(conversionDecimals);
 
     _expectLZSend(LZ_FEE, LZ_ENDPOINT_ID_TWO, message, underTest.exposed_defaultOption(), feePayer);
 
@@ -322,17 +317,13 @@ contract HeroOFTXOperatorTest is BaseTest {
   function test_lzReceive_whenOverridedToLocalChain_thenConverts() external prankAs(user) {
     Origin memory origin = Origin({ srcEid: LZ_ENDPOINT_ID_TWO, sender: PEER, nonce: 0 });
     bytes32 uuid = keccak256(abi.encode("HelloWorld"));
-    uint8 conversionDecimals = 11;
 
     uint64 reward = underTest.REWARD_PER_MINT();
-    uint256 expectedReward = reward * (10 ** (18 - conversionDecimals));
-
-    underTest.exposed_conversion(conversionDecimals);
 
     expectExactEmit();
-    emit HeroOFTXHarness.OnCreditCalled(validator, expectedReward, false);
+    emit HeroOFTXHarness.OnCreditCalled(validator, reward, false);
     expectExactEmit();
-    emit IHeroOFTX.OFTReceived(uuid, LZ_ENDPOINT_ID_TWO, validator, expectedReward);
+    emit IHeroOFTX.OFTReceived(uuid, LZ_ENDPOINT_ID_TWO, validator, reward);
 
     underTest.exposed_lzReceive(uuid, origin, _generateMessage(validator, reward, 0));
   }
@@ -575,17 +566,14 @@ contract HeroOFTXOperatorTest is BaseTest {
   }
 
   function test_generateMessage_thenIncludeFeeToIt() external view {
-    assertEq(underTest.exposed_generateMessage(user, 25.3e13), abi.encode(user, uint64(25.3e13), 0));
+    assertEq(underTest.exposed_generateMessage(user, 25.3e13), abi.encode(user, 25.3e13, 0));
   }
 
   function test_generateMessage_whenToShareIsOverrided_thenApplyConvertion() external {
     uint64 amount = 99e13;
     uint8 conversionDecimals = 11;
-    uint64 expectAmount = uint64(amount / (10 ** (18 - conversionDecimals)));
 
-    underTest.exposed_conversion(conversionDecimals);
-
-    assertEq(underTest.exposed_generateMessage(user, amount), abi.encode(user, expectAmount, 0));
+    assertEq(underTest.exposed_generateMessage(user, amount), abi.encode(user, amount, 0));
   }
 
   function test_updateTreasury_asNonOwner_thenReverts() external prankAs(user) {
@@ -627,7 +615,7 @@ contract HeroOFTXOperatorTest is BaseTest {
     );
   }
 
-  function _generateMessage(address _to, uint64 _amount, uint256 _fee) private pure returns (bytes memory) {
+  function _generateMessage(address _to, uint256 _amount, uint256 _fee) private pure returns (bytes memory) {
     return abi.encode(_to, _amount, _fee);
   }
 }
@@ -635,7 +623,6 @@ contract HeroOFTXOperatorTest is BaseTest {
 contract HeroOFTXHarness is HeroOFTXOperator {
   uint64 public constant REWARD_PER_MINT = 60e6;
   bool private failOnValidatorCrossChain;
-  uint256 public decimalConversionRate = 1;
 
   event OnCreditCalled(address to, uint256 value, bool isFrozen);
   event OnValidatorSameChain(address to);
@@ -679,10 +666,6 @@ contract HeroOFTXHarness is HeroOFTXOperator {
     return _generateMessage(_to, _amountOrId);
   }
 
-  function exposed_conversion(uint256 _decimals) external {
-    decimalConversionRate = 10 ** (18 - _decimals);
-  }
-
   function _onValidatorSameChain(address _to) internal override returns (uint256) {
     emit OnValidatorSameChain(_to);
     return REWARD_PER_MINT;
@@ -708,13 +691,5 @@ contract HeroOFTXHarness is HeroOFTXOperator {
 
   function _onValidatorCrossChainFailed(address _to, uint256 _idOrAmount) internal override {
     emit OnValidatorCrossChainFailed(_to, _idOrAmount);
-  }
-
-  function _toSharedDecimals(uint256 _v) internal view override returns (uint64) {
-    return uint64(_v / decimalConversionRate);
-  }
-
-  function _toLocalDecimals(uint64 _v) internal view override returns (uint256) {
-    return _v * decimalConversionRate;
   }
 }

@@ -234,16 +234,6 @@ contract OFT721TickerTest is BaseTest {
     assertTrue(underTest.exposed_exists(latestId + 1));
   }
 
-  function test_toLocalDecimals_thenReturnsExactValue() external view {
-    uint64 value = 239.88e6;
-    assertEq(underTest.exposed_toLocalDecimals(value), value);
-  }
-
-  function test_toSharedDecimals_thenReturnsExactValue() external view {
-    uint64 value = 289.88e6;
-    assertEq(underTest.exposed_toSharedDecimals(value), value);
-  }
-
   function _expectLZSend(uint256 _fee, uint32 _toEndpoint, bytes memory _payload, bytes memory _option, address _refund)
     private
   {
@@ -317,13 +307,5 @@ contract OFT721TickerHarness is OFT721Ticker {
 
   function exposed_baseURI() external view returns (string memory) {
     return _baseURI();
-  }
-
-  function exposed_toLocalDecimals(uint64 _value) external view returns (uint256) {
-    return _toLocalDecimals(_value);
-  }
-
-  function exposed_toSharedDecimals(uint256 _value) external view virtual returns (uint64) {
-    return _toSharedDecimals(_value);
   }
 }

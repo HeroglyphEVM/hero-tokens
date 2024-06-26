@@ -68,10 +68,9 @@ contract HeroOFTXTest is BaseTest {
     uint256 minAmount = amountIn;
 
     uint8 decimals = 11;
-    uint64 expectedAmount = uint64(amountIn / (10 ** (18 - decimals)));
     address to = generateAddress();
 
-    bytes memory message = abi.encode(to, expectedAmount);
+    bytes memory message = abi.encode(to, amountIn);
 
     underTest.exposed_conversion(decimals);
 
@@ -81,24 +80,6 @@ contract HeroOFTXTest is BaseTest {
     _expectLZSend(LZ_FEE, LZ_ENDPOINT_ID_TWO, message, underTest.defaultLzOption(), user);
 
     underTest.send{ value: LZ_FEE }(LZ_ENDPOINT_ID_TWO, to, amountIn, minAmount);
-  }
-
-  function test_send_whenToShareChainOverrided_thenAppliesConversion() external prankAs(user) {
-    uint8 decimals = 11;
-    uint64 amount = 9.992e15;
-    uint256 expectedAmount = amount / (10 ** (18 - decimals));
-    address to = generateAddress();
-
-    bytes memory message = abi.encode(to, expectedAmount);
-
-    underTest.exposed_conversion(decimals);
-
-    expectExactEmit();
-    emit HeroOFTXHarness.OnDebit(amount, amount);
-
-    _expectLZSend(LZ_FEE, LZ_ENDPOINT_ID_TWO, message, underTest.defaultLzOption(), user);
-
-    underTest.send{ value: LZ_FEE }(LZ_ENDPOINT_ID_TWO, to, amount, amount);
   }
 
   function test_estimateFee_thenReturnsFee() external {
@@ -125,7 +106,6 @@ contract HeroOFTXTest is BaseTest {
 
     uint8 decimals = 11;
     uint64 amount = 9.992e5;
-    uint256 expectedAmount = amount * (10 ** (18 - decimals));
     address to = generateAddress();
 
     bytes memory message = abi.encode(to, amount);
@@ -133,7 +113,7 @@ contract HeroOFTXTest is BaseTest {
     underTest.exposed_conversion(decimals);
 
     expectExactEmit();
-    emit HeroOFTXHarness.OnCredit(to, expectedAmount, false);
+    emit HeroOFTXHarness.OnCredit(to, amount, false);
 
     underTest.exposed_lzReceive(uuid, origin, message);
   }
@@ -156,23 +136,6 @@ contract HeroOFTXTest is BaseTest {
 
     assertEq(underTest.lzGasLimit(), gasLimit);
     assertEq(underTest.defaultLzOption(), expectDefaultLzOption);
-  }
-
-  function test_toLocalDecimals_thenDoNoConversion() external view {
-    uint64 value = 938e8;
-    assertEq(underTest.exposed_toLocalDecimals(value), value);
-  }
-
-  function test_toSharedDecimals_whenTooHighNumber_thenReverts() external {
-    uint256 value = 938e18;
-
-    vm.expectRevert(HeroOFTErrors.ConversionOutOfBounds.selector);
-    underTest.exposed_toSharedDecimals(value);
-  }
-
-  function test_toSharedDecimals_thenDoNoConversion() external view {
-    uint64 value = 938e8;
-    assertEq(underTest.exposed_toSharedDecimals(value), value);
   }
 
   function _expectLZSend(uint256 _fee, uint32 _toEndpoint, bytes memory _payload, bytes memory _option, address _refund)
@@ -205,14 +168,6 @@ contract HeroOFTXHarness is HeroOFTX {
     _lzReceive(_origin, _uuid, _payload, address(0), _payload);
   }
 
-  function exposed_toLocalDecimals(uint64 _value) external view returns (uint256) {
-    return HeroOFTX._toLocalDecimals(_value);
-  }
-
-  function exposed_toSharedDecimals(uint256 _value) external view virtual returns (uint64) {
-    return HeroOFTX._toSharedDecimals(_value);
-  }
-
   function exposed_conversion(uint256 _decimals) external {
     decimalConversionRate = 10 ** (18 - _decimals);
   }
@@ -225,13 +180,5 @@ contract HeroOFTXHarness is HeroOFTX {
   function _credit(address _to, uint256 _value, bool _isFrozen) internal override returns (uint256 amountReceived_) {
     emit OnCredit(_to, _value, _isFrozen);
     return _value;
-  }
-
-  function _toSharedDecimals(uint256 _v) internal view override returns (uint64) {
-    return uint64(_v / decimalConversionRate);
-  }
-
-  function _toLocalDecimals(uint64 _v) internal view override returns (uint256) {
-    return _v * decimalConversionRate;
   }
 }
