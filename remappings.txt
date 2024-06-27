@@ -1,4 +1,4 @@
-src/=src/
+hero-tokens/test/=test/
 ds-test/=node_modules/@layerzerolabs/toolbox-foundry/lib/ds-test/
 forge-std/=node_modules/@layerzerolabs/toolbox-foundry/lib/forge-std/src/
 @layerzerolabs/=node_modules/@layerzerolabs/
@@ -10,3 +10,6 @@ heroglyph-library/=node_modules/@layerzerolabs/toolbox-foundry/lib/heroglyph-lib
 hardhat-deploy/=node_modules/hardhat-deploy/
 hardhat/=node_modules/hardhat/
 solidity-bytes-utils/=node_modules/solidity-bytes-utils/
+@prb-math/=node_modules/@layerzerolabs/toolbox-foundry/lib/prb-math/
+@prb/math/=node_modules/@layerzerolabs/toolbox-foundry/lib/prb-math/
+@sablier/v2-core/=node_modules/@sablier/v2-core/
