@@ -10,6 +10,7 @@ import { HeroOFTErrors } from "./../HeroOFTErrors.sol";
  */
 abstract contract BaseOFT20 is ERC20, HeroOFTErrors {
   error InvalidLocalDecimals();
+  error Uint64OutOfBounds(uint256 amountLD);
 
   // @notice Provides a conversion rate when swapping between denominations of SD and LD
   //      - shareDecimals == SD == shared Decimals
@@ -90,6 +91,9 @@ abstract contract BaseOFT20 is ERC20, HeroOFTErrors {
    * @return amountSD The amount in shared decimals.
    */
   function _toSD(uint256 _amountLD) internal view virtual returns (uint64 amountSD) {
-    return uint64(_amountLD / decimalConversionRate);
+    uint256 convertedAmount = _amountLD / decimalConversionRate;
+    if (convertedAmount > type(uint64).max) revert Uint64OutOfBounds(_amountLD);
+
+    return uint64(convertedAmount);
   }
 }
