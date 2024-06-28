@@ -66,6 +66,14 @@ contract BaseOFT20Test is BaseTest {
     assertEq(underTest.exposed_toLD(value), expected);
   }
 
+  function test_toSD_whenAmountLDOutOfBounds_thenReverts() public {
+    uint256 maxUint64 = type(uint64).max;
+    uint256 outOfBounds = (maxUint64 + 1) * underTest.decimalConversionRate();
+
+    vm.expectRevert(abi.encodeWithSelector(BaseOFT20.Uint64OutOfBounds.selector, outOfBounds));
+    underTest.exposed_toSD(outOfBounds);
+  }
+
   function test_toSD_thenAppliesConversion() external view {
     uint256 value = 289.88e18;
     uint64 expected = uint64(value / (10 ** (18 - 6)));
