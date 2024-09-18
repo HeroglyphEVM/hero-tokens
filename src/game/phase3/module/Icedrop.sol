@@ -19,7 +19,7 @@ contract Icedrop is IIcedrop, Ownable {
   uint32 public constant MIN_DURATION = 4 weeks * MIN_MONTH;
   uint32 public constant MAX_DURATION = 4 weeks * MAX_MONTH;
   uint32 public constant DEFAULT_DURATION = 4 weeks * 6;
-  uint32 public constant CLIFF_DURATION = 4 weeks * 3;
+  uint32 public constant CLIFF_DURATION = 3 weeks;
   uint32 public constant MAX_GAS_RANDOMIZER = 100_000;
 
   ISablierV2LockupLinear public immutable sablier;
