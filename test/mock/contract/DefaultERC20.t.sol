@@ -19,11 +19,11 @@ abstract contract DefaultERC20 {
     _decimals = decimals_;
   }
 
-  function mint(address account, uint256 amount) public {
+  function mint(address account, uint256 amount) public virtual {
     _mint(account, amount);
   }
 
-  function burn(address account, uint256 amount) public {
+  function burn(address account, uint256 amount) public virtual {
     _burn(account, amount);
   }
 
