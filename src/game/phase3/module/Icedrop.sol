@@ -14,11 +14,11 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract Icedrop is IIcedrop, Ownable {
-  uint32 public constant MIN_MONTH = 1;
-  uint32 public constant MAX_MONTH = 18;
-  uint32 public constant MIN_DURATION = 4 weeks * MIN_MONTH;
-  uint32 public constant MAX_DURATION = 4 weeks * MAX_MONTH;
-  uint32 public constant DEFAULT_DURATION = 4 weeks * 6;
+  uint32 public constant MIN_WEEKS = 1;
+  uint32 public constant MAX_WEEKS = 18;
+  uint32 public constant MIN_DURATION = 1 weeks * MIN_WEEKS;
+  uint32 public constant MAX_DURATION = 1 weeks * MAX_WEEKS;
+  uint32 public constant DEFAULT_DURATION = 6 weeks;
   uint32 public constant CLIFF_DURATION = 3 weeks;
   uint32 public constant MAX_GAS_RANDOMIZER = 100_000;
 
@@ -124,7 +124,7 @@ contract Icedrop is IIcedrop, Ownable {
     if (!gamblingData.executed) revert GamblingNotExecuted();
 
     gamblingData.accepted = true;
-    uint256 months = 4 weeks * (gamblingData.seed % MAX_MONTH + MIN_MONTH);
+    uint256 months = 4 weeks * (gamblingData.seed % MAX_WEEKS + MIN_WEEKS);
 
     params.durations = LockupLinear.Durations({ cliff: CLIFF_DURATION, total: CLIFF_DURATION + uint40(months) });
 
@@ -233,7 +233,7 @@ contract Icedrop is IIcedrop, Ownable {
   /// @inheritdoc IIcedrop
   function getGamblingMonthResult(bytes32 _keyHash) external view override returns (uint256) {
     GamblingData memory gamblingData = gamblingRequests[keyHashGamblingId[_keyHash]];
-    return !gamblingData.executed ? 0 : gamblingData.seed % MAX_MONTH + MIN_MONTH;
+    return !gamblingData.executed ? 0 : gamblingData.seed % MAX_WEEKS + MIN_WEEKS;
   }
 
   /// @inheritdoc IIcedrop

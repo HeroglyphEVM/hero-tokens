@@ -10,6 +10,17 @@
         "06_heroglyphAttestation": "0x0000000000000000000000000000000000000000",
         "07_heroglyphRelay": "0x0000000000000000000000000000000000000000"
     },
+    "ethereum":
+    {
+        "00_owner": "0x888D768764A2E304215247F0bA3457cCb0f0ab4f", 
+        "01_treasury": "0x888D768764A2E304215247F0bA3457cCb0f0ab4f", 
+        "02_lzEndpoint":"0x1a44076050125825900e736c501f859c50fE728c", 
+        "03_lzDeploymentChainEndpointId": 30101, 
+        "04_nativeTokenWrapped": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+        "05_isTestnet": false,
+        "06_heroglyphAttestation": "0x0000000000000000000000000000000000000000",
+        "07_heroglyphRelay": "0x0000000000000000000000000000000000000000"
+    },
     "arbitrum":
     {
         "00_owner": "0x888D768764A2E304215247F0bA3457cCb0f0ab4f", 
