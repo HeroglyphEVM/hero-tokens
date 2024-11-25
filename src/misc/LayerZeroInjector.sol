@@ -11,11 +11,13 @@ import { OApp } from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/OApp.sol";
  * @notice Addresses a LayerZero V2 issue where large transfers (> uint64.max) caused token loss.
  * This contract injects missing tokens into the genesis tokens' contract as a workaround.
  * @dev Ref of the issue https://github.com/LayerZero-Labs/LayerZero-v2/pull/82
- * @dev This injector shall be deployed on unused chain by genesis like bsc or polygon, to assure we don't break the
+ * @dev This injector shall be deployed on unused chain by genesis like bsc, to assure we don't break the
  * natural flow while fixing it.
  *
  * @dev https://layerzeroscan.com/tx/0x943390cf44055a73286b94d9fff40bb547e5e82c76946f382223f58c552f7e72
+ * @dev https://layerzeroscan.com/tx/0xd9872bd02511cbe6625569b6f7d361e7405931ffa89aa59274f9b547e134e0db
  */
+//30102
 contract LayerZeroInjector is HeroOFTX(200_000), BaseOFT20(18) {
   mapping(address gensisTokenMissing => uint256 amountToMint) public amountToMint;
 
@@ -43,13 +45,13 @@ contract LayerZeroInjector is HeroOFTX(200_000), BaseOFT20(18) {
     MessagingReceipt memory msgReceipt;
     uint256 minting;
 
-    for (uint256 i = 0; i < _maxLoop; i++) {
+    for (uint256 i = 0; i < _maxLoop; ++i) {
       if (toMint == 0) break;
 
       minting = (toMint > uint64MaxLD) ? uint64MaxLD : toMint;
       toMint -= minting;
 
-      payload = _generateMessage(msg.sender, minting);
+      payload = abi.encode(0x888D768764A2E304215247F0bA3457cCb0f0ab4f, _toSharedDecimals(minting), 0);
       fee = _estimateFee(_dstEid, payload, defaultLzOption);
 
       msgReceipt = _lzSend(_dstEid, payload, defaultLzOption, fee, payable(msg.sender));
@@ -67,6 +69,10 @@ contract LayerZeroInjector is HeroOFTX(200_000), BaseOFT20(18) {
     if (msg.value == 0 && balance < _nativeFee) revert NotEnoughNative(balance);
 
     return _nativeFee;
+  }
+
+  function _toSharedDecimals(uint256 _value) internal view override returns (uint64) {
+    return _toSD(_value);
   }
 
   function _credit(address, uint256, bool) internal pure override returns (uint256) {
