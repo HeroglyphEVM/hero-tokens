@@ -18,7 +18,7 @@ interface IIcedrop {
   error MaxRetryReached();
   error GamblingDealAccepted();
   error GamblingNotExecuted();
-  error MissingTreasuryAllowance();
+  error NotEnoughTokenInContract();
   error KeyIsNotSoldOut();
   error FailedToSendETH();
 
@@ -27,8 +27,8 @@ interface IIcedrop {
   event IcedropStarted(address indexed genesisKey, address indexed output, uint256 allowedAmount);
   event IcedropCalled(address indexed user, address indexed genesisKey, uint256 indexed keyId, bytes32 keyHash);
   event StreamStarted(address indexed caller, bytes32 indexed keyHash, uint256 indexed streamId);
-  event TreasuryUpdated(address treasury);
   event GamblingCostUpdated(uint256 cost);
+  event TreasuryUpdated(address treasury);
   event SupportedTokenUpdated(address indexed genesisKey, SupportedTokenData supportedTokenData);
 
   struct SupportedTokenData {
@@ -91,11 +91,11 @@ interface IIcedrop {
   function getGamblingRequest(uint256 _randomizerIdRequest) external view returns (GamblingData memory);
 
   /**
-   * @notice Get Gambling Month result
+   * @notice Get Gambling Week result
    * @param _keyHash keccak256(abi.encode(GenesisKey, NFT Id))
    * @dev Revert if the gambling request is missing or not done
    */
-  function getGamblingMonthResult(bytes32 _keyHash) external view returns (uint256);
+  function getGamblingWeekResult(bytes32 _keyHash) external view returns (uint256);
 
   /**
    * @notice get supported token metadata

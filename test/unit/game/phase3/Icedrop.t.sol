@@ -19,11 +19,11 @@ contract IcedropTest is BaseTest {
   address private user;
   address private sablier;
   address private randomizer;
-  address private treasury;
   address private holder;
 
   address private keyA_NotCapped;
   address private keyB_Capped;
+  address private treasury;
   MockERC20 private token_reward_A;
   MockERC20 private token_reward_B;
 
@@ -42,10 +42,8 @@ contract IcedropTest is BaseTest {
     _prepareTests();
     underTest = new IcedropHarness(owner, treasury, sablier, randomizer, DEFAULT_CONFIGURATION);
 
-    vm.prank(treasury);
-    token_reward_A.approve(address(underTest), MAX_REWARD_A);
-    vm.prank(treasury);
-    token_reward_B.approve(address(underTest), MAX_REWARD_B);
+    token_reward_A.mint(address(underTest), MAX_REWARD_A);
+    token_reward_B.mint(address(underTest), MAX_REWARD_B);
 
     vm.mockCall(
       randomizer,
@@ -66,9 +64,9 @@ contract IcedropTest is BaseTest {
   function _prepareTests() internal {
     owner = generateAddress("Owner");
     user = generateAddress("User", 100e18);
+    treasury = generateAddress("Treasury");
     sablier = generateAddress("Sablier");
     randomizer = generateAddress("Radomizer");
-    treasury = generateAddress("Treasury");
     holder = generateAddress("Holder");
 
     keyA_NotCapped = address(new MockERC20Capped("Key", "A", 18, MAX_SUPPLY));
@@ -79,9 +77,6 @@ contract IcedropTest is BaseTest {
 
     token_reward_A = new MockERC20("Reward", "A", 18);
     token_reward_B = new MockERC20("Reward", "B", 18);
-
-    token_reward_A.mint(treasury, MAX_REWARD_A);
-    token_reward_B.mint(treasury, MAX_REWARD_B);
 
     KEY_B_1_HASH = keccak256(abi.encode(keyB_Capped, 1));
 
@@ -109,7 +104,7 @@ contract IcedropTest is BaseTest {
     assertEq(underTest.owner(), owner);
     assertEq(address(underTest.sablier()), sablier);
     assertEq(address(underTest.randomizer()), randomizer);
-    assertEq(address(underTest.treasury()), treasury);
+    assertEq(underTest.treasury(), treasury);
     assertGt(underTest.gamblingCost(), 0);
 
     assertEq(abi.encode(underTest.getGenesisKeySupport(keyA_NotCapped)), abi.encode(DEFAULT_CONFIGURATION[0]));
@@ -139,11 +134,9 @@ contract IcedropTest is BaseTest {
     underTest.initializeIcedrop(keyB_Capped);
   }
 
-  function test_initializeIcedrop_whenAllocationNotSet_thenReverts() external {
-    vm.prank(treasury);
-    token_reward_B.approve(address(underTest), MAX_REWARD_B - 1);
-
-    vm.expectRevert(IIcedrop.MissingTreasuryAllowance.selector);
+  function test_initializeIcedrop_whenNotEnoughTokenInContract_thenReverts() external {
+    token_reward_B.burn(address(underTest), 1);
+    vm.expectRevert(IIcedrop.NotEnoughTokenInContract.selector);
     underTest.initializeIcedrop(keyB_Capped);
   }
 
@@ -346,7 +339,7 @@ contract IcedropTest is BaseTest {
 
     gamblingData.accepted = true;
     assertEq(abi.encode(underTest.getGamblingRequest(100)), abi.encode(gamblingData));
-    assertEq(underTest.getGamblingMonthResult(KEY_B_1_HASH), 1);
+    assertEq(underTest.getGamblingWeekResult(KEY_B_1_HASH), 1);
   }
 
   function test_acceptGamblingResult_whenMaximumResult_thenCreatesVesting() external prankAs(user) {
@@ -375,7 +368,7 @@ contract IcedropTest is BaseTest {
 
     gamblingData.accepted = true;
     assertEq(abi.encode(underTest.getGamblingRequest(100)), abi.encode(gamblingData));
-    assertEq(underTest.getGamblingMonthResult(KEY_B_1_HASH), 18);
+    assertEq(underTest.getGamblingWeekResult(KEY_B_1_HASH), 18);
   }
 
   function test_retryGambling_whenMsgValueUnderCost_thenReverts() external prankAs(user) {
@@ -516,7 +509,7 @@ contract IcedropTest is BaseTest {
     gambling.seed = uint256(value);
 
     assertEq(abi.encode(underTest.getGamblingRequest(requestId)), abi.encode(gambling));
-    assertEq(underTest.getGamblingMonthResult(KEY_B_1_HASH), expectedResultMonth);
+    assertEq(underTest.getGamblingWeekResult(KEY_B_1_HASH), expectedResultMonth);
   }
 
   function test_randomizerWithdraw_whenNotOwner_thenReverts() external prankAs(user) {
@@ -533,21 +526,6 @@ contract IcedropTest is BaseTest {
     vm.expectCall(randomizer, abi.encodeWithSelector(IRandomizer.clientWithdrawTo.selector, owner, amount));
 
     underTest.randomizerWithdraw(amount);
-  }
-
-  function test_updateTreasury_whenNotOwner_thenReverts() external prankAs(user) {
-    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
-    underTest.updateTreasury(generateAddress());
-  }
-
-  function test_updateTreasury_thenUpdatesTreasury() external prankAs(owner) {
-    address newTreasury = generateAddress();
-
-    expectExactEmit();
-    emit IIcedrop.TreasuryUpdated(newTreasury);
-    underTest.updateTreasury(newTreasury);
-
-    assertEq(underTest.treasury(), newTreasury);
   }
 
   function test_updateGamblingCost_whenNotOwner_thenReverts() external prankAs(user) {
@@ -589,8 +567,8 @@ contract IcedropTest is BaseTest {
     assertEq(abi.encode(underTest.getGenesisKeySupport(genesis)), abi.encode(newToken));
   }
 
-  function test_getGamblingMonthResult_whenGamblingNotExecuted_thenReturnsZero() external view {
-    assertEq(underTest.getGamblingMonthResult(KEY_B_1_HASH), 0);
+  function test_getGamblingWeekResult_whenGamblingNotExecuted_thenReturnsZero() external view {
+    assertEq(underTest.getGamblingWeekResult(KEY_B_1_HASH), 0);
   }
 
   function mockKeyOwner(address key, uint256 keyId, address keyOwner) private {

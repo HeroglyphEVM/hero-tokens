@@ -42,8 +42,8 @@ contract Icedrop is IIcedrop, Ownable {
   ) Ownable(_owner) {
     sablier = ISablierV2LockupLinear(_sablier);
     randomizer = IRandomizer(_randomizerAI);
-    treasury = _treasury;
     gamblingCost = 0.01e18;
+    treasury = _treasury;
 
     SupportedTokenData memory support;
     for (uint256 i = 0; i < _supports.length; ++i) {
@@ -103,12 +103,11 @@ contract Icedrop is IIcedrop, Ownable {
     if (KeyOFT721(_key).totalSupply() != KeyOFT721(_key).maxSupply()) revert KeyIsNotSoldOut();
     if (support.output == address(0)) revert NotSupported();
     if (maxOutput == 0) revert Misconfiguration();
-    if (IERC20(output).allowance(treasury, address(this)) < maxOutput) revert MissingTreasuryAllowance();
+    if (IERC20(output).balanceOf(address(this)) < maxOutput) revert NotEnoughTokenInContract();
     if (support.started) revert IcedropAlreadyStarted();
 
     support.started = true;
 
-    IERC20(output).transferFrom(treasury, address(this), maxOutput);
     IERC20(output).approve(address(sablier), maxOutput);
 
     emit IcedropStarted(_key, support.output, maxOutput);
@@ -124,9 +123,9 @@ contract Icedrop is IIcedrop, Ownable {
     if (!gamblingData.executed) revert GamblingNotExecuted();
 
     gamblingData.accepted = true;
-    uint256 months = 4 weeks * (gamblingData.seed % MAX_WEEKS + MIN_WEEKS);
+    uint256 weeksInSecond = 1 weeks * (gamblingData.seed % MAX_WEEKS + MIN_WEEKS);
 
-    params.durations = LockupLinear.Durations({ cliff: CLIFF_DURATION, total: CLIFF_DURATION + uint40(months) });
+    params.durations = LockupLinear.Durations({ cliff: CLIFF_DURATION, total: CLIFF_DURATION + uint40(weeksInSecond) });
 
     _createVesting(msg.sender, _keyHash, params);
   }
@@ -231,7 +230,7 @@ contract Icedrop is IIcedrop, Ownable {
   }
 
   /// @inheritdoc IIcedrop
-  function getGamblingMonthResult(bytes32 _keyHash) external view override returns (uint256) {
+  function getGamblingWeekResult(bytes32 _keyHash) external view override returns (uint256) {
     GamblingData memory gamblingData = gamblingRequests[keyHashGamblingId[_keyHash]];
     return !gamblingData.executed ? 0 : gamblingData.seed % MAX_WEEKS + MIN_WEEKS;
   }
