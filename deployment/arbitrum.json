@@ -130,5 +130,9 @@
   {
     "contractAddress": "0x0B26036f917aEE4f0Fdde14BF23e9dC5e9086723",
     "contractName": "Icedrop"
+  },
+  {
+    "contractAddress": "0xc71831557F6e210750FAe8a325b8c5bD784f1265",
+    "contractName": "RandomizerReader"
   }
 ]
